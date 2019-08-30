@@ -8,7 +8,7 @@ float voltage;
 float presskpa;
 int sensorValue;
 float volt;
-
+int long t;
 
 // to prevent rapidly switching valves, we only run in intervals
 unsigned long time_interval = 100L;
@@ -19,6 +19,8 @@ void setup()
   //Initializing solenoid pins
   pinMode(solenoidPin1, OUTPUT);
   pinMode(solenoidPin2, OUTPUT);
+
+  t=millis();
 
   //Initializing motors
   pinMode(12, OUTPUT);
@@ -40,18 +42,18 @@ void loop()
   digitalWrite(13, HIGH); //Establishes forward direction for motor terminal B
 
   inflate();
-  
 
 
+  pressure();
   //delay(1000);                          //Wait 1 Second
-  //pressure();
-  
-  
+
+
+
   //hold();
 
   //delay(1000);                          //Wait 1 Second
   //pressure();
-  
+
 
 
   //deflate();
@@ -59,21 +61,26 @@ void loop()
 
   //delay(1000);                          //Wait 1 Second
   //pressure();
-  
+
 }
 
 
 void pressure ()
 {
-   sensorValue = analogRead(A2);
-   voltage = sensorValue * (5 / 1024.0);
-   presskpa = 20 + voltage * 1000 / 12.1;
-   Serial.print(presskpa);
-   Serial.print("kPa @");
-   Serial.print(voltage);
-   Serial.println("V"); 
-  
+  sensorValue = analogRead(A2);
+  voltage = sensorValue * (5 / 1023.0);
+  //presskpa = 20 + voltage * 1000 / 12.1;
+  presskpa = (voltage/5-0.00842)/0.002421;
+  //Serial.print(sensorValue);
+  //Serial.println(" raw");
+  if ((millis()-t)>100){
+    Serial.println(presskpa);
+    //Serial.println("kPa @");
+    //Serial.print(voltage);
+    //Serial.println("V");
+    t=millis();
   }
+}
 
 
 
@@ -82,16 +89,16 @@ void pressure ()
 void inflate ()
 
 {
-  digitalWrite(solenoidPin1, HIGH);      
+  digitalWrite(solenoidPin1, HIGH);
   digitalWrite(solenoidPin2, LOW);
-  
-  
-  analogWrite(3, 255);   //Terminal A motor - full speed 
+
+
+  analogWrite(3, 255);   //Terminal A motor - full speed
   analogWrite(11, LOW);   //Termanl B motor - full stop
-  Serial.println("Inflate?");
-  
-  
-  }  
+  //Serial.println("Inflate?");
+
+
+}
 
 
 void hold ()
@@ -99,27 +106,26 @@ void hold ()
 {
   digitalWrite(3, LOW);   //Terminal A motor - full stop
   analogWrite(11, LOW);   //Termanl B motor - full stop
- 
-  
-  digitalWrite(solenoidPin1, HIGH);      
+
+
+  digitalWrite(solenoidPin1, HIGH);
   digitalWrite(solenoidPin2, HIGH);
-  Serial.println("Hold?");  
-   
-      }
+  Serial.println("Hold?");
+
+}
 
 void deflate ()
 {
-  
-  digitalWrite(solenoidPin1, LOW);       
+
+  digitalWrite(solenoidPin1, LOW);
   digitalWrite(solenoidPin2, LOW);
 
-  
-  analogWrite(3, LOW);   //Terminal A motor - full stop 
-  analogWrite(11, 255);   //Terminal A motor - full speed 
 
-  
-  Serial.println("Deflate?"); 
-  
-      
-  }
-  
+  analogWrite(3, LOW);   //Terminal A motor - full stop
+  analogWrite(11, 255);   //Terminal A motor - full speed
+
+
+  Serial.println("Deflate?");
+
+
+}
