@@ -68,7 +68,7 @@ WiFiUDP Udp;
 const IPAddress serverIp(192, 168, 0, 140);
 const unsigned int serverPort = 32000;
 
-
+int prevstate = 1;
 
 void setup() {
 
@@ -78,13 +78,13 @@ void setup() {
     ; // wait for serial port to connect. Needed for native USB port only
   }
 
-  Serial.println("MPRLS Simple Test");
-  if (! mpr.begin()) {
-    Serial.println("Failed to communicate with MPRLS sensor, check wiring?");
-    while (1) {
-      delay(10);
-    }
-  }
+  //Serial.println("MPRLS Simple Test");
+  //if (! mpr.begin()) {
+  //  Serial.println("Failed to communicate with MPRLS sensor, check wiring?");
+   // while (1) {
+   //   delay(10);
+   // }
+  //}
   Serial.println("Found MPRLS sensor");
 
   //Initialize actuators
@@ -206,6 +206,8 @@ void loop() {
 
  if(inflatePower == 1){
       inflatepump();
+      if(prevstate != 2)
+      Serial.println("Inflate");
  }
  else
    {
@@ -213,10 +215,14 @@ void loop() {
  if (deflatePower == 1)
 {
       deflatepump();
+      if(prevstate != 0)
+      Serial.println("Deflate");
       
 }
 else{
   hold();
+  if(prevstate != 1)
+  Serial.println("Hold");
   }
 }
    
@@ -448,7 +454,8 @@ digitalWrite(solenoidPin2, LOW);
 
 analogWrite(3, 255);   //Terminal A motor - full speed
 analogWrite(11, LOW);   //Termanl B motor - full stop
-Serial.println("Inflate?");
+//Serial.println("Inflate?");
+prevstate = 2;
 
 
 
@@ -464,8 +471,8 @@ void hold()
 
   digitalWrite(solenoidPin1, HIGH);
   digitalWrite(solenoidPin2, HIGH);
-  Serial.println("Hold?");
-
+  //Serial.println("Hold?");
+  prevstate = 1;
 }
 
 void deflatepump()
@@ -479,8 +486,8 @@ void deflatepump()
   analogWrite(11, 255);   //Terminal A motor - full speed
 
 
-  Serial.println("Deflate?");
-
+  //Serial.println("Deflate?");
+  prevstate = 0;
 
 }
 

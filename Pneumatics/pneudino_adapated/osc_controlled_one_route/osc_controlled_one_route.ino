@@ -182,7 +182,7 @@ void loop() {
   int reading2 = digitalRead(2);
   int readingA0 = analogRead(A0);
 
-
+/*
  if(inflatePower == 1){
       inflatepump();
       if(prevstate != 2)
@@ -205,7 +205,28 @@ else{
   }
 }
 
-  
+*/
+
+if((inflatePower>=-255)&&(inflatePower<=-11))
+{
+      inflatepump();
+      if(prevstate != 2)
+      Serial.println("Inflate");  
+  }
+
+if ((inflatePower>-11)&&(inflatePower<11))
+{
+      hold();
+      if(prevstate != 1)
+      Serial.println("Hold");
+  }
+
+if ((inflatePower>=11)&&(inflatePower<=255))
+{
+      deflatepump();
+      if(prevstate != 0)
+      Serial.println("Deflate");
+  }
 }
 
 //called whenever an OSCMessage's address matches "/led/"
@@ -431,7 +452,7 @@ void inflatepump()
 {
 p.inflate(3);
 
-analogWrite(3, 255);   //Terminal A motor - full speed
+analogWrite(3, inflatePower);   //Terminal A motor - full speed
 analogWrite(11, LOW);   //Termanl B motor - full stop
 p.update();
 
@@ -458,7 +479,7 @@ void deflatepump()
 {
 p.deflate(3);
 analogWrite(3, LOW);   //Terminal A motor - full stop
-analogWrite(11, 255);   //Terminal A motor - full speed
+analogWrite(11, -inflatePower);   //Terminal A motor - full speed
 p.update();
 prevstate = 0;
 
