@@ -1,8 +1,4 @@
 /*
-  This example connects to an unencrypted WiFi network.
-  Then to a broadcasting OSC server in Processing
-  Then it accepts commands to control LED and vibration patterns using the Adafruit_DRV2605
-  Based on Oscuino
   Circuit:
    WiFi shield attached
   Created 2019-02-26
@@ -12,8 +8,8 @@
   by dlf (Metodo2 srl)
   modified 31 May 2012
   by Tom Igoe
-
 */
+
 #include <SPI.h>
 #include <WiFiNINA.h>
 #include <WiFiUdp.h>
@@ -21,64 +17,57 @@
 #include <OSCBundle.h>
 #include <OSCBoards.h>
 #include <Wire.h>
-#include "Adafruit_DRV2605.h"
 #include <PneuDuino.h>
-#include <Wire.h>
 
+// If you use the WiFiNINA with the OSC library make sure you remove
+// "SLIPEncodedSerial.cpp" and "SLIPEncodedSerial.h" from
+// the arduino --> osc library. (#slavic_warrior_solution)
 
-Adafruit_DRV2605 drv;
-
-uint8_t effect = 1; //Pre-made vibe Effects
-boolean effectMode = false;
-
-
-int vibeIntensityRT = 0;
-int vibeDelayRT = 1;
-int inflatePower = 0;
-int inv_inflatePower = 0;
-int deflatePower = 0;
+#define I2CPneuAddress 1 //CHANGE THIS VALUE DEPENDING ON HOW YOU WIRED THE PNEUDUINO
 
 boolean inflate = false;
 boolean deflate = false;
 
-int inflateDuration = 0;
-int deflateDuration = 0;
+int inflateSpeed = 0;
 
-unsigned long currentMillis = 0;    
-unsigned long previousMillis = 0;
+boolean wasOff = false; //used to establish connection to server
 
-//#include "arduino_secrets.h"
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
 char ssid[] = "serv";        // your network SSID (name)
 char pass[] = "";    // your network password (use for WPA, or use as key for WEP)
 int status = WL_IDLE_STATUS;     // the WiFi radio's status
 
 unsigned int localPort = 12000;      // local port to listen on
-
 char packetBuffer[255]; //buffer to hold incoming packet
-
 WiFiUDP Udp;
+
 
 const IPAddress serverIp(192, 168, 0, 140);
 const unsigned int serverPort = 32000;
+
 PneuDuino p;
-int prevstate = 1;
+
+float pressure;
+
+//DEPRECATED VARIABLES --------------------------------------------------
+int inflateDuration = 0;
+int deflateDuration = 0;
+unsigned long currentMillis = 0;
+unsigned long previousMillis = 0;
+//DEPRECATED VARIABLES END --------------------------------------------------
 
 void setup() {
-
   //Initialize serial and wait for port to open:
   Serial.begin(9600);
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
 
-  //Initialize actuators
+  p.setAddressMode(PNEUDUINO_ADDRESS_VIRTUAL);
 
+  //Initialize actuators
   //initialize LED
   pinMode(LED_BUILTIN, OUTPUT);
-
-
-
 
   // check for the presence of the shield:
   if (WiFi.status() == WL_NO_SHIELD) {
@@ -94,57 +83,200 @@ void setup() {
     // Connect to network:
     status = WiFi.begin(ssid);
 
-    // wait 10 seconds for connection:
-    delay(10000);
+    // wait 10 seconds and blink while trying to connect
+
+    for (int i = 0; i <= 10; i++) {
+      digitalWrite(13, HIGH);
+      delay(500);
+      digitalWrite(13, LOW);
+      delay(500);
+    }
+
+    digitalWrite(13, HIGH);
+    delay(3000);
+    digitalWrite(13, LOW);
+
   }
+
+  // wait 10 seconds and blink while trying to connect
+  digitalWrite(13, HIGH);
+  delay(3000);
+  digitalWrite(13, LOW);
+
 
   // you're connected now, so print out the data:
   Serial.print("You're connected to the network");
   printCurrentNet();
   printWiFiData();
-
   Serial.print("\nStarting listening on port:");
   Serial.print(localPort);
   // if you get a connection, report back via serial:
   Udp.begin(localPort);
 
-
-
   //register with server
   connectToServer();
   delay(50);
-
-
   Wire.begin();
-  pinMode(12, OUTPUT);    //Channel A Direction Pin Initialize
-  pinMode(13, OUTPUT);
+  pinMode(12, OUTPUT);    //Channel A Direction Pin Initialize (controlling the motor direction)
   p.begin();
-
-
-  //pinMode(A0, INPUT);
-  //pinMode(2, INPUT);
+  pinMode(A0, INPUT); //potentiometer
+  pinMode(2, INPUT); //power switch
 }
 
 void loop() {
-  //   //if there's data available, read a packet
-  //  int packetSize = Udp.parsePacket();
-  //  if (packetSize)
-  //  {
-  //    Serial.print("Received packet of size ");
-  //    Serial.println(packetSize);
-  //    Serial.print("From ");
-  //    IPAddress remoteIp = Udp.remoteIP();
-  //    Serial.print(remoteIp);
-  //    Serial.print(", port ");
-  //    Serial.println(Udp.remotePort());
-  //
-  //    // read the packet into packetBufffer
-  //    int len = Udp.read(packetBuffer, 255);
-  //    if (len > 0) packetBuffer[len] = 0;
-  //    Serial.println("Contents:");
-  //    Serial.println(packetBuffer);
-  //  }
 
+  //loop specifically for Pneuduino.
+
+  p.update(); //always AND ONLY called in the beginning
+
+  parseSerialCommands(); //read and parse any commands from serial (e.g. "c" = connect to server)
+  readOSCMessage(); //read and parse any possible incoming OSC message from server
+
+  int powerOn = digitalRead(2); //see if power is on. only inflate/deflate if power is on
+
+  //pressure = map(p.readPressure(I2CPneuAddress), 60, 90, 0, 30); //read the pressure value from pneuduino. The original range (60-90) is mapped to 1-30
+  //Serial.println(pressure); //DEBUG
+  sendOSCPressure(); //send it to server
+
+  //int potentiometer = analogRead(A0); //read value from potentiometer: CURRENTLY NOT DOING ANYTHING WITH IT
+
+  if (powerOn == HIGH)
+  {
+    if (wasOff) {
+      connectToServer();
+      wasOff = false;
+    }
+
+    if (inflate)
+    {
+      inflatePump(inflateSpeed);
+    }
+    if (deflate)
+    {
+      deflatePump();
+    }
+  }
+  else wasOff = true;
+}
+
+void inflatePump(int inflateSpeed) {
+
+  digitalWrite(12, HIGH); //Channel A Direction Forward
+  analogWrite(3, inflateSpeed);    //Channel A Speed 100%
+
+  p.inflate(I2CPneuAddress); //method 1
+  // p.in(1, LEFT); //method 2
+}
+
+void deflatePump() {
+
+  analogWrite(3, 0); //Channel A Speed 0%
+
+  p.deflate(I2CPneuAddress); //method 1
+  // p.out(1, LEFT); //method 2
+}
+
+//OSC MESSAGE HANDLING FUNCTIONS -----------------------------------------------------------------------------
+
+void readOSCMessage() {
+  OSCBundle bundleIN;
+  int size;
+  if ( (size = Udp.parsePacket()) > 0)
+  {
+    while (size--)
+      bundleIN.fill(Udp.read());
+    if (!bundleIN.hasError())
+    {
+      bundleIN.dispatch("/actuator/inflate", routeInflate);
+      bundleIN.dispatch("/actuator/deflate", routeDeflate);
+      //      bundleIN.dispatch("/actuator/inflatedur", routeInflateDur); //DEPRECATED
+      //      bundleIN.dispatch("/actuator/deflatedur", routeDeflateDur);
+    }
+  }
+}
+
+void sendOSCPressure() {
+  //the message wants an OSC address as first argument
+  OSCMessage msg("/sensor/pressure");
+  msg.add(pressure);
+
+  Udp.beginPacket(serverIp, serverPort);
+  msg.send(Udp); // send the bytes to the SLIP stream
+  Udp.endPacket(); // mark the end of the OSC Packet
+  msg.empty(); // free space occupied by message
+
+  delay(20);
+}
+
+
+//called whenever an OSCMessage's address matches "/inflate/": It sets the "inflate" boolean to true and the "inflateSpeed"
+void routeInflate(OSCMessage &msg) {
+  Serial.println("Inflate");
+  //returns true if the data in the first position is a float
+  if (msg.isFloat(0)) {
+    //get that float
+    float data = msg.getFloat(0);
+    Serial.println(data);
+    inflateSpeed = (int) data;  //message needs to between 0 and 255
+    inflate = true;
+    deflate = false;
+  }
+}
+
+//called whenever an OSCMessage's address matches "/deflate/": opens and closes the valve
+void routeDeflate(OSCMessage &msg) {
+
+  //returns true if the data in the first position is a float
+  if (msg.isFloat(0)) {
+    //get that float
+    float data = msg.getFloat(0);
+    Serial.println(data);
+
+    //deflate
+    if ((int) data == 1) {
+      Serial.println("Valve control Open");
+      deflate = true;
+      inflate = false;
+    }
+
+    else if ((int) data == 0) {
+      //inflate = false;
+      deflate = false;
+      inflate = true;
+      Serial.println("Valve control Closed");
+    }
+  }
+}
+
+//DEPRECATED FUNCTION: LEFT HERE IN CASE PAVEL WANTS IT LATER
+void routeInflateDur(OSCMessage &msg) {
+  Serial.println("Inflate Duration");
+  //returns true if the data in the first position is a float
+  if (msg.isFloat(0)) {
+    //get that float
+    float data = msg.getFloat(0);
+    Serial.println(data);
+    inflateDuration = (int) data;
+    //inflate = true;
+  }
+}
+
+//DEPRECATED FUNCTION: LEFT HERE IN CASE PAVEL WANTS IT LATER
+void routeDeflateDur(OSCMessage &msg) {
+  Serial.println("Deflate Duration");
+  //returns true if the data in the first position is a float
+  if (msg.isFloat(0)) {
+    //get that float
+    float data = msg.getFloat(0);
+    Serial.println(data);
+    deflateDuration = (int) data;
+    //deflate = true;
+  }
+}
+
+//UTILITY FUNCTIONS ---------------------------------------------------------------------------------------------------------------
+
+void parseSerialCommands() {
   char incomingByte = 0;   // for incoming serial data
   if (Serial.available() > 0) {
     // read the incoming byte:
@@ -154,165 +286,23 @@ void loop() {
       delay(50);
     }
   }
-
-  OSCBundle bundleIN;
-  int size;
-
-  if ( (size = Udp.parsePacket()) > 0)
-  {
-
-    while (size--)
-      bundleIN.fill(Udp.read());
-
-    if (!bundleIN.hasError())
-    {
-
-      bundleIN.dispatch("/actuator/inflate", routeInflate);
-      bundleIN.dispatch("/actuator/deflate", routeDeflate);
-      bundleIN.dispatch("/actuator/inflatedur", routeInflateDur);
-      bundleIN.dispatch("/actuator/deflatedur", routeDeflateDur);
-
-    }
-  }
-  unsigned long currentMillis = millis();
-
-
-/*
- if(inflatePower == 1){
-      inflatepump();
-      if(prevstate != 2)
-      Serial.println("Inflate");
- }
- else
-   {
-    
- if (deflatePower == 1)
-{
-      deflatepump();
-      if(prevstate != 0)
-      Serial.println("Deflate");
-      
 }
-else{
-  hold();
-  if(prevstate != 1)
-  Serial.println("Hold");
-  }
-}
-
-*/
-
-
-
-if((inflatePower>=-255)&&(inflatePower<=-11))
-{
-      deflatepump();
-      p.update();
-      if(prevstate != 0)
-      Serial.println("Deflate");  
-  }
-
-if ((inflatePower>-11)&&(inflatePower<11))
-{
-      hold();
-      p.update();
-      if(prevstate != 1)
-      Serial.println("Hold");
-  }
-
-if ((inflatePower>=11)&&(inflatePower<=255))
-{
-      inflatepump();
-      p.update();
-      if(prevstate != 2)
-      Serial.println("Inflate");
-  }
-}
-
-//called whenever an OSCMessage's address matches "/led/"
-void routeInflate(OSCMessage &msg) {
-  //Serial.println("Inflate");
-  //returns true if the data in the first position is a float
-  if (msg.isFloat(0)) {
-    //get that float
-    float data = msg.getFloat(0);
-
-    
-    inflatePower = (int) data;
-    //Serial.println(inflatePower);
-    //inflate = true;
-
-  }
-}
-
-
-
-
-//called whenever an OSCMessage's address matches "/led/"
-void routeDeflate(OSCMessage &msg) {
-  Serial.println("Deflate");
-  //returns true if the data in the first position is a float
-  if (msg.isFloat(0)) {
-    //get that float
-    float data = msg.getFloat(0);
-
-    Serial.println(data);
-    deflatePower = (int) data;
-    
-    //deflate = true;
-
-  }
-}
-
-
-void routeInflateDur(OSCMessage &msg) {
-  Serial.println("Inflate Duration");
-  //returns true if the data in the first position is a float
-  if (msg.isFloat(0)) {
-    //get that float
-    float data = msg.getFloat(0);
-
-    Serial.println(data);
-    inflateDuration = (int) data;
-    //inflate = true;
-
-
-  }
-}
-
-
-
-
-
-void routeDeflateDur(OSCMessage &msg) {
-  Serial.println("Deflate Duration");
-  //returns true if the data in the first position is a float
-  if (msg.isFloat(0)) {
-    //get that float
-    float data = msg.getFloat(0);
-
-    Serial.println(data);
-    deflateDuration = (int) data;
-    //deflate = true;
-
-
-  }
-}
-
 
 void connectToServer() {
-
   Serial.print("\nConnecting to server bit at ");
   Serial.print(serverIp); Serial.print(":"); Serial.println(serverPort);
-
   OSCMessage msg("/actuator/startConnection/");
-
   Udp.beginPacket(serverIp, serverPort);
   msg.send(Udp); // send the bytes to the SLIP stream
-
   Udp.endPacket();
-
   msg.empty(); // free space occupied by message
+
+  //must also send a sensorconnect message in case it intends to be a sensor
+  //  OSCMessage msg("/sensor/startConnection/");
+  //  Udp.beginPacket(serverIp, serverPort);
+  //  msg.send(Udp); // send the bytes to the SLIP stream
+  //  Udp.endPacket();
+  //  msg.empty(); // free space occupied by message
 }
 
 void printWiFiData() {
@@ -321,38 +311,32 @@ void printWiFiData() {
   Serial.print("IP Address: ");
   Serial.println(ip);
   Serial.println(ip);
-
   // print your MAC address:
   byte mac[6];
   WiFi.macAddress(mac);
   Serial.print("MAC address: ");
   printMacAddress(mac);
-
 }
 
 void printCurrentNet() {
   // print the SSID of the network you're attached to:
   Serial.print("SSID: ");
   Serial.println(WiFi.SSID());
-
   // print the MAC address of the router you're attached to:
   byte bssid[6];
   WiFi.BSSID(bssid);
   Serial.print("BSSID: ");
   printMacAddress(bssid);
-
   // print the received signal strength:
   long rssi = WiFi.RSSI();
   Serial.print("signal strength (RSSI):");
   Serial.println(rssi);
-
   // print the encryption type:
   byte encryption = WiFi.encryptionType();
   Serial.print("Encryption Type:");
   Serial.println(encryption, HEX);
   Serial.println();
 }
-
 void printMacAddress(byte mac[]) {
   for (int i = 5; i >= 0; i--) {
     if (mac[i] < 16) {
@@ -364,49 +348,4 @@ void printMacAddress(byte mac[]) {
     }
   }
   Serial.println();
-}
-
-
-void inflatepump()
-
-{
-
-p.inflate(3);
-
-analogWrite(3, inflatePower);   //Terminal A motor - full speed
-analogWrite(11, 0);   //Termanl B motor - full stop
-p.update();
-
-prevstate = 2;
-
-
-
-}
-
-
-void hold()
-
-{
-  
-p.hold(3);
-analogWrite(3, 0);   //Terminal A motor - full stop
-analogWrite(11, 0);   //Termanl B motor - full stop
-p.update();
-
-prevstate = 1;
-
-}
-
-void deflatepump()
-{
-
-
-p.deflate(3);
-inv_inflatePower = abs(inflatePower);
-Serial.println(inv_inflatePower);
-analogWrite(3, 0);   //Terminal A motor - full stop
-analogWrite(11, 144);   //Terminal A motor - full speed
-p.update();
-prevstate = 0;
-
 }

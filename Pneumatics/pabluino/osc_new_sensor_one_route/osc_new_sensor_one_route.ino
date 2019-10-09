@@ -14,19 +14,23 @@
   by Tom Igoe
 
 */
-#include <SPI.h>
+//#include <SPI.h>
 #include <WiFiNINA.h>
 #include <WiFiUdp.h>
 #include <OSCMessage.h>
 #include <OSCBundle.h>
 #include <OSCBoards.h>
-#include <Wire.h>
-#include "Adafruit_DRV2605.h"
-#include <PneuDuino.h>
-#include <Wire.h>
+//#include <Wire.h>
+//#include "Adafruit_DRV2605.h"
+
+#include "Adafruit_MPRLS.h"
 
 
-Adafruit_DRV2605 drv;
+//Adafruit_DRV2605 drv;
+
+#define RESET_PIN  -1  // set to any GPIO pin # to hard-reset on begin()
+#define EOC_PIN    -1  // set to any GPIO pin to read end-of-conversion by pin
+Adafruit_MPRLS mpr = Adafruit_MPRLS(RESET_PIN, EOC_PIN);
 
 uint8_t effect = 1; //Pre-made vibe Effects
 boolean effectMode = false;
@@ -35,7 +39,6 @@ boolean effectMode = false;
 int vibeIntensityRT = 0;
 int vibeDelayRT = 1;
 int inflatePower = 0;
-int inv_inflatePower = 0;
 int deflatePower = 0;
 
 boolean inflate = false;
@@ -43,6 +46,9 @@ boolean deflate = false;
 
 int inflateDuration = 0;
 int deflateDuration = 0;
+
+int solenoidPin1 = 7;
+int solenoidPin2 = 6;
 
 unsigned long currentMillis = 0;    
 unsigned long previousMillis = 0;
@@ -61,7 +67,7 @@ WiFiUDP Udp;
 
 const IPAddress serverIp(192, 168, 0, 140);
 const unsigned int serverPort = 32000;
-PneuDuino p;
+
 int prevstate = 1;
 
 void setup() {
@@ -72,12 +78,27 @@ void setup() {
     ; // wait for serial port to connect. Needed for native USB port only
   }
 
+  //Serial.println("MPRLS Simple Test");
+  //if (! mpr.begin()) {
+  //  Serial.println("Failed to communicate with MPRLS sensor, check wiring?");
+   // while (1) {
+   //   delay(10);
+   // }
+  //}
+  Serial.println("Found MPRLS sensor");
+
   //Initialize actuators
 
   //initialize LED
-  pinMode(LED_BUILTIN, OUTPUT);
+//pinMode(LED_BUILTIN, OUTPUT);
 
-
+  //initializeVibe
+//  drv.begin();
+//  drv.selectLibrary(1);
+//  drv.useLRA();
+  // I2C trigger by sending 'go' command
+  // default: realtime
+//  drv.setMode(DRV2605_MODE_REALTIME);
 
 
   // check for the presence of the shield:
@@ -115,14 +136,17 @@ void setup() {
   delay(50);
 
 
-  Wire.begin();
+  //Wire.begin();
+
+
+  pinMode(solenoidPin1, OUTPUT);
+  pinMode(solenoidPin2, OUTPUT);
   pinMode(12, OUTPUT);    //Channel A Direction Pin Initialize
-  pinMode(13, OUTPUT);
-  p.begin();
+  pinMode(13, OUTPUT);    //Channel B Direction Pin Initialize
 
 
-  //pinMode(A0, INPUT);
-  //pinMode(2, INPUT);
+
+
 }
 
 void loop() {
@@ -177,6 +201,8 @@ void loop() {
   unsigned long currentMillis = millis();
 
 
+
+  
 /*
  if(inflatePower == 1){
       inflatepump();
@@ -199,15 +225,11 @@ else{
   Serial.println("Hold");
   }
 }
-
-*/
-
-
+ */ 
 
 if((inflatePower>=-255)&&(inflatePower<=-11))
 {
       deflatepump();
-      p.update();
       if(prevstate != 0)
       Serial.println("Deflate");  
   }
@@ -215,7 +237,6 @@ if((inflatePower>=-255)&&(inflatePower<=-11))
 if ((inflatePower>-11)&&(inflatePower<11))
 {
       hold();
-      p.update();
       if(prevstate != 1)
       Serial.println("Hold");
   }
@@ -223,23 +244,24 @@ if ((inflatePower>-11)&&(inflatePower<11))
 if ((inflatePower>=11)&&(inflatePower<=255))
 {
       inflatepump();
-      p.update();
       if(prevstate != 2)
       Serial.println("Inflate");
   }
+
+
+  
 }
 
 //called whenever an OSCMessage's address matches "/led/"
 void routeInflate(OSCMessage &msg) {
-  //Serial.println("Inflate");
+  Serial.println("Inflate");
   //returns true if the data in the first position is a float
   if (msg.isFloat(0)) {
     //get that float
     float data = msg.getFloat(0);
 
-    
+    Serial.println(data);
     inflatePower = (int) data;
-    //Serial.println(inflatePower);
     //inflate = true;
 
   }
@@ -258,8 +280,7 @@ void routeDeflate(OSCMessage &msg) {
 
     Serial.println(data);
     deflatePower = (int) data;
-    
-    //deflate = true;
+    deflate = true;
 
   }
 }
@@ -298,6 +319,88 @@ void routeDeflateDur(OSCMessage &msg) {
 
   }
 }
+
+
+
+
+
+
+//called whenever an OSCMessage's address matches "/led/"
+//void routeVibeEffect(OSCMessage &msg) {
+//  Serial.println("Vibe Effect");
+//  setEffectMode();
+  //returns true if the data in the first position is a float
+//  if (msg.isFloat(0)) {
+    //get that float
+//    float data = msg.getFloat(0);
+
+//    Serial.println(data);
+//    effect = data;
+//  }
+//}
+
+//void setEffectMode() {
+//  if (!effectMode) {
+//    effectMode = true;
+//    drv.setMode(DRV2605_MODE_INTTRIG);
+//  }
+//}
+
+//void setRTMode() {
+
+//  if (effectMode) {
+//    effectMode = false;
+//    drv.setMode(DRV2605_MODE_REALTIME);
+//  }
+//}
+
+//called whenever an OSCMessage's address matches "/led/"
+//void routeVibeIntensityRT(OSCMessage &msg) {
+//  Serial.println("Vibe Intensity");
+  //setRTMode();
+  //returns true if the data in the first position is a float
+//  if (msg.isFloat(0)) {
+    //get that float
+//    float data = msg.getFloat(0);
+
+//    Serial.println(data);
+//    vibeIntensityRT = data;
+//  }
+//}
+
+//called whenever an OSCMessage's address matches "/led/"
+//void routeVibeDelayRT(OSCMessage &msg) {
+//  Serial.println("Vibe Delay");
+//  setRTMode();
+  //returns true if the data in the first position is a float
+//  if (msg.isFloat(0)) {
+    //get that float
+//    float data = msg.getFloat(0);
+
+//    Serial.println(data);
+//    vibeDelayRT = data;
+//  }
+//}
+
+//void playVibeEffect() {
+  // set the effect to play
+//  drv.setWaveform(0, effect);  // play effect
+//  drv.setWaveform(1, 0);       // end waveform
+
+  // play the effect!
+//  drv.go();
+//  delay(20);
+//}
+
+
+//void playVibeRT() {
+//  drv.setRealtimeValue(vibeIntensityRT);
+//  delay(10);
+//  drv.setRealtimeValue(0);
+//  delay(vibeDelayRT);
+//}
+
+
 
 
 void connectToServer() {
@@ -366,17 +469,16 @@ void printMacAddress(byte mac[]) {
   Serial.println();
 }
 
-
 void inflatepump()
 
 {
+digitalWrite(solenoidPin1, HIGH);
+digitalWrite(solenoidPin2, LOW);
 
-p.inflate(3);
 
 analogWrite(3, inflatePower);   //Terminal A motor - full speed
-analogWrite(11, 0);   //Termanl B motor - full stop
-p.update();
-
+analogWrite(11, LOW);   //Termanl B motor - full stop
+//Serial.println("Inflate?");
 prevstate = 2;
 
 
@@ -387,26 +489,35 @@ prevstate = 2;
 void hold()
 
 {
-  
-p.hold(3);
-analogWrite(3, 0);   //Terminal A motor - full stop
-analogWrite(11, 0);   //Termanl B motor - full stop
-p.update();
+  digitalWrite(3, LOW);   //Terminal A motor - full stop
+  analogWrite(11, LOW);   //Termanl B motor - full stop
 
-prevstate = 1;
 
+  digitalWrite(solenoidPin1, HIGH);
+  digitalWrite(solenoidPin2, HIGH);
+  //Serial.println("Hold?");
+  prevstate = 1;
 }
 
 void deflatepump()
 {
 
+  digitalWrite(solenoidPin1, LOW);
+  digitalWrite(solenoidPin2, LOW);
 
-p.deflate(3);
-inv_inflatePower = abs(inflatePower);
-Serial.println(inv_inflatePower);
-analogWrite(3, 0);   //Terminal A motor - full stop
-analogWrite(11, 144);   //Terminal A motor - full speed
-p.update();
-prevstate = 0;
 
+  analogWrite(3, LOW);   //Terminal A motor - full stop
+  analogWrite(11, abs(inflatePower));   //Terminal A motor - full speed
+
+
+  //Serial.println("Deflate?");
+  prevstate = 0;
+
+}
+
+void pressure()
+{
+  float pressure_hPa = mpr.readPressure();
+  Serial.print("Pressure (hPa): "); Serial.println(pressure_hPa);
+  Serial.print("Pressure (PSI): "); Serial.println(pressure_hPa / 68.947572932);
 }

@@ -49,7 +49,7 @@ unsigned long previousMillis = 0;
 //#include "arduino_secrets.h"
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
 char ssid[] = "serv";        // your network SSID (name)
-char pass[] = "";    // your network password (use for WPA, or use as key for WEP)
+char pass[] = "somaserv";    // your network password (use for WPA, or use as key for WEP)
 int status = WL_IDLE_STATUS;     // the WiFi radio's status
 
 unsigned int localPort = 12000;      // local port to listen on
@@ -97,7 +97,7 @@ void setup() {
     Serial.print("Attempting to connect to WPA SSID: ");
     Serial.println(ssid);
     // Connect to network:
-    status = WiFi.begin(ssid);
+    status = WiFi.begin(ssid,pass);
 
     // wait 10 seconds for connection:
     delay(10000);
@@ -122,6 +122,7 @@ void setup() {
 
   Wire.begin();
   pinMode(12, OUTPUT);    //Channel A Direction Pin Initialize
+  pinMode(13, OUTPUT);
   p.begin();
 
 
@@ -188,21 +189,20 @@ void loop() {
       if(prevstate != 2)
       Serial.println("Inflate");
  }
- else
-   {
+ else{
     
- if (deflatePower == 1)
-{
-      deflatepump();
-      if(prevstate != 0)
-      Serial.println("Deflate");
-      
-}
-else{
-  hold();
-  if(prevstate != 1)
-  Serial.println("Hold");
-  }
+     if (deflatePower == 1)
+      {
+          deflatepump();
+          if(prevstate != 0)
+          Serial.println("Deflate");
+            
+      }
+      else{
+          hold();
+          if(prevstate != 1)
+          Serial.println("Hold");
+          }
 }
 
   
