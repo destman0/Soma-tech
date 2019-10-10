@@ -33,18 +33,21 @@ char packetBuffer[255]; //buffer to hold incoming packet
 
 WiFiUDP Udp;
 
-const IPAddress serverIp(192, 168, 0, 140);
+const IPAddress serverIp(192, 168, 0, 166); // 192, 168, 0, 140
 const unsigned int serverPort = 32000;
 
+
+unsigned long time_now = 0; //in order to keep the time so that we can simulate delay() without blocking the loop() function
+int period = 100;  //how often in miliseconds to send the pressure to the server
 
 void setup() {
   // put your setup code here, to run once:
 Serial.begin(9600);
-/*
+
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
-*/
+
 // checking the presence of MKR Motor Shield  
   if (controller.begin()) 
     {
@@ -98,54 +101,62 @@ if (! mpr.begin()) {
 
 void loop() {
 
-char incomingByte = 0;   // for incoming serial data
-  if (Serial.available() > 0) {
-    // read the incoming byte:
-    incomingByte = Serial.read();
-    if (incomingByte == 'c') {
-      connectToServer();
-      delay(50);
-    }
-  }
+    char incomingByte = 0;   // for incoming serial data
+      if (Serial.available() > 0) {
+        // read the incoming byte:
+        incomingByte = Serial.read();
+        if (incomingByte == 'c') { //if you write 'c' in the command line, it will connect to the server at the specified IP address above
+          connectToServer();
+          delay(50);
+        }
+      }
 
-OSCBundle bundleIN;
-int size;
+    OSCBundle bundleIN;
+    int size;
 
-  if ( (size = Udp.parsePacket()) > 0)
-  {
-
-    while (size--)
-      bundleIN.fill(Udp.read());
-
-    if (!bundleIN.hasError())
+    if ( (size = Udp.parsePacket()) > 0)
     {
-
-      bundleIN.dispatch("/actuator/inflate", routeInflate);
-      bundleIN.dispatch("/actuator/deflate", routeDeflate);
-      bundleIN.dispatch("/actuator/inflatedur", routeInflateDur);
-      bundleIN.dispatch("/actuator/deflatedur", routeDeflateDur);
-
+  
+      while (size--)
+        bundleIN.fill(Udp.read());
+  
+      if (!bundleIN.hasError())
+      {
+  
+        bundleIN.dispatch("/actuator/inflate", routeInflate);
+        bundleIN.dispatch("/actuator/deflate", routeDeflate);
+        bundleIN.dispatch("/actuator/inflatedur", routeInflateDur);
+        bundleIN.dispatch("/actuator/deflatedur", routeDeflateDur);
+  
+      }
     }
-  }
 
 
-if((inflatePower>=-100)&&(inflatePower<=-11))
-{
-      deflate();
+    if((inflatePower>=-100)&&(inflatePower<=-11))
+    {
+          deflate();
+    
+      }
 
-  }
+    if ((inflatePower>-11)&&(inflatePower<11))
+    {
+          hold();
+    
+      }
 
-if ((inflatePower>-11)&&(inflatePower<11))
-{
-      hold();
+    if ((inflatePower>=11)&&(inflatePower<=100))
+    {
+          inflate();
+      }
 
-  }
-
-if ((inflatePower>=11)&&(inflatePower<=100))
-{
-      inflate();
-  }
-pressure();
+    //we send the pressure in a OSC message to the server every some miliseconds, specified in the variable 'period'
+    
+    
+    if(millis() > time_now + period){
+        time_now = millis();
+        sendOSCPressure(getPressure());
+    }
+     
 }
 
 void routeInflate(OSCMessage &msg) {
@@ -177,7 +188,7 @@ void inflate()
     M2.setDuty(0);
     M3.setDuty(40);
     M4.setDuty(0);
-    Serial.println("Inflate");
+   // Serial.println("Inflate");
   
   }
 
@@ -187,23 +198,37 @@ void deflate()
     M2.setDuty(abs(inflatePower));
     M3.setDuty(0);
     M4.setDuty(0);
-    Serial.println("Deflate");
+    //Serial.println("Deflate");
   }
+  
 void hold()
 {
     M1.setDuty(0);
     M2.setDuty(0);
     M3.setDuty(0);
     M4.setDuty(40);
-    Serial.println("Hold");
+   // Serial.println("Hold");
   }
 
-void pressure()
+float getPressure()
 {
-    float pressure_hPa = mpr.readPressure();
-    Serial.print("Pressure (hPa): "); Serial.println(pressure_hPa);
-    Serial.print("Pressure (PSI): "); Serial.println(pressure_hPa / 68.947572932);
-  }  
+    return mpr.readPressure();
+//    Serial.print("Pressure (hPa): "); Serial.println(pressure_hPa);
+//    Serial.print("Pressure (PSI): "); Serial.println(pressure_hPa / 68.947572932);
+}  
+
+void sendOSCPressure(float pressure) {
+  //the message wants an OSC address as first argument
+  OSCMessage msg("/sensor/pressure");
+  msg.add(pressure);
+
+  Udp.beginPacket(serverIp, serverPort);
+  msg.send(Udp); // send the bytes to the SLIP stream
+  Udp.endPacket(); // mark the end of the OSC Packet
+  msg.empty(); // free space occupied by message
+
+  delay(20);
+}
 
 void connectToServer() {
 
