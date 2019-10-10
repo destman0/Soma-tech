@@ -40,10 +40,11 @@ const unsigned int serverPort = 32000;
 void setup() {
   // put your setup code here, to run once:
 Serial.begin(9600);
+/*
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
-
+*/
 // checking the presence of MKR Motor Shield  
   if (controller.begin()) 
     {
@@ -172,7 +173,7 @@ void routeDeflateDur(OSCMessage &msg) {
 
 void inflate()
 {
-    M1.setDuty(100);
+    M1.setDuty(inflatePower);
     M2.setDuty(0);
     M3.setDuty(40);
     M4.setDuty(0);
@@ -183,7 +184,7 @@ void inflate()
 void deflate()
 {
     M1.setDuty(0);
-    M2.setDuty(100);
+    M2.setDuty(abs(inflatePower));
     M3.setDuty(0);
     M4.setDuty(0);
     Serial.println("Deflate");
