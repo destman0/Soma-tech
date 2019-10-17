@@ -33,12 +33,15 @@ char packetBuffer[255]; //buffer to hold incoming packet
 
 WiFiUDP Udp;
 
-const IPAddress serverIp(192, 168, 0, 166); // 192, 168, 0, 140
+const IPAddress serverIp(192, 168, 0, 150); // 192, 168, 0, 140
 const unsigned int serverPort = 32000;
 
 
 unsigned long time_now = 0; //in order to keep the time so that we can simulate delay() without blocking the loop() function
 int period = 100;  //how often in miliseconds to send the pressure to the server
+
+unsigned long time_now_connect_server = 0; //in order to keep the time so that we can simulate delay() without blocking the loop() function
+int period_connect_server = 5000;  //how often in miliseconds to reconnect actuator to server
 
 void setup() {
   // put your setup code here, to run once:
@@ -156,6 +159,14 @@ void loop() {
         time_now = millis();
         sendOSCPressure(getPressure());
     }
+
+    //this is just while Pavel does not add physical buttons! WHen he does, delete this code
+     if(millis() > time_now_connect_server + period_connect_server){
+        time_now_connect_server = millis();
+        sendOSCPressure(getPressure());
+        connectToServer();
+        delay(50);
+    }
      
 }
 
@@ -238,6 +249,7 @@ void connectToServer() {
   OSCMessage msg("/actuator/startConnection/");
 
   Udp.beginPacket(serverIp, serverPort);
+        
   msg.send(Udp); // send the bytes to the SLIP stream
 
   Udp.endPacket();
