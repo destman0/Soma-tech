@@ -38,7 +38,7 @@ const unsigned int serverPort = 32000;
 
 
 unsigned long time_now = 0; //in order to keep the time so that we can simulate delay() without blocking the loop() function
-int period = 100;  //how often in miliseconds to send the pressure to the server
+int period = 20;  //how often in miliseconds to send the pressure to the server
 
 unsigned long time_now_connect_server = 0; //in order to keep the time so that we can simulate delay() without blocking the loop() function
 int period_connect_server = 5000;  //how often in miliseconds to reconnect actuator to server
