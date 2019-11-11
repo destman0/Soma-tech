@@ -216,16 +216,24 @@ void hold()
 {
     M1.setDuty(0);
     M2.setDuty(0);
-    M3.setDuty(40);
-    M4.setDuty(40);
+
+    //if we isolate the pillow from the motor loop 
+    //M3.setDuty(40);
+    //M4.setDuty(40);
+    //or we keep the pillow connected to the motor loop - may add air leakage to the system
+    M3.setDuty(0);
+    M4.setDuty(0);
+
+    
    // Serial.println("Hold");
   }
 
 float getPressure()
 {
+    float pressure_hPa = mpr.readPressure();
+    Serial.print("Pressure (hPa): "); Serial.println(pressure_hPa);
+    Serial.print("Pressure (PSI): "); Serial.println(pressure_hPa / 68.947572932); 
     return mpr.readPressure();
-//    Serial.print("Pressure (hPa): "); Serial.println(pressure_hPa);
-//    Serial.print("Pressure (PSI): "); Serial.println(pressure_hPa / 68.947572932);
 }  
 
 void sendOSCPressure(float pressure) {
