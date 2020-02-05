@@ -178,7 +178,7 @@ void routeInflate(OSCMessage &msg) {
     //get that float
     float data = msg.getFloat(0);
 
-    //Serial.println(data);
+    Serial.println(data);
     inflatePower = (int) data;
 
   }
@@ -197,34 +197,34 @@ void routeDeflateDur(OSCMessage &msg) {
 
 void inflate()
 {
-    M1.setDuty(inflatePower);
-    M2.setDuty(0);
+    //M1.setDuty(inflatePower);
+    //M2.setDuty(0);
     M3.setDuty(0);
-    M4.setDuty(40);
+    M4.setDuty(100);
    // Serial.println("Inflate");
   
   }
 
 void deflate()
 {
-    M1.setDuty(abs(inflatePower));
-    M2.setDuty(0);
-    M3.setDuty(40);
+    //M1.setDuty(abs(inflatePower));
+    //M2.setDuty(0);
+    M3.setDuty(100);
     M4.setDuty(0);
     //Serial.println("Deflate");
   }
   
 void hold()
 {
-    M1.setDuty(0);
-    M2.setDuty(0);
+    //M1.setDuty(0);
+    //M2.setDuty(0);
 
     //if we isolate the pillow from the motor loop 
-    //M3.setDuty(40);
-    //M4.setDuty(40);
+    M3.setDuty(100);
+    M4.setDuty(100);
     //or we keep the pillow connected to the motor loop - may add air leakage to the system
-    M3.setDuty(0);
-    M4.setDuty(0);
+    //M3.setDuty(0);
+    //M4.setDuty(0);
 
     
    // Serial.println("Hold");
@@ -253,8 +253,8 @@ void sendOSCPressure(float pressure) {
 
 void connectToServer() {
 
-  //Serial.print("\nConnecting to server bit at ");
-  //Serial.print(serverIp); Serial.print(":"); Serial.println(serverPort);
+  Serial.print("\nConnecting to server bit at ");
+  Serial.print(serverIp); Serial.print(":"); Serial.println(serverPort);
 
   OSCMessage msg("/actuator/startConnection/");
 

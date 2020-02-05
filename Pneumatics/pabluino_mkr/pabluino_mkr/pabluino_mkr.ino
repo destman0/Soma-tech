@@ -33,7 +33,7 @@ char packetBuffer[255]; //buffer to hold incoming packet
 
 WiFiUDP Udp;
 
-const IPAddress serverIp(192, 168, 0, 150); // 192, 168, 0, 140
+const IPAddress serverIp(192, 168, 0, 140); // 192, 168, 0, 140
 const unsigned int serverPort = 32000;
 
 
