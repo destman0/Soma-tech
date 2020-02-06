@@ -33,7 +33,7 @@ char packetBuffer[255]; //buffer to hold incoming packet
 
 WiFiUDP Udp;
 
-const IPAddress serverIp(192, 168, 0, 150); // 192, 168, 0, 140
+const IPAddress serverIp(192, 168, 0, 140); // 192, 168, 0, 140
 const unsigned int serverPort = 32000;
 
 
@@ -161,12 +161,12 @@ void loop() {
     }
 
     //this is just while Pavel does not add physical buttons! WHen he does, delete this code
-     if(millis() > time_now_connect_server + period_connect_server){
-        time_now_connect_server = millis();
-        sendOSCPressure(getPressure());
-        connectToServer();
-        delay(50);
-    }
+//     if(millis() > time_now_connect_server + period_connect_server){
+//        time_now_connect_server = millis();
+//        sendOSCPressure(getPressure());
+//        connectToServer();
+//        delay(50);
+//    }
      
 }
 

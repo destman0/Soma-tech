@@ -1,4 +1,3 @@
-
 /*
 The following code is based on following examples:
 
@@ -24,19 +23,21 @@ p_sanches Serverbit code
 Adafruit_MPRLS mpr = Adafruit_MPRLS(RESET_PIN, EOC_PIN);
 
 int inflatePower = 0;
+int solenoidPin1 = 0;
+int solenoidPin2 = 1;
 
 char ssid[] = "serv";        // your network SSID (name)
 char pass[] = "somaserv";    // your network password (use for WPA, or use as key for WEP)
 int status = WL_IDLE_STATUS;     // the WiFi radio's status
 
 unsigned int localPort = 12000;      // local port to listen on
-
 char packetBuffer[255]; //buffer to hold incoming packet
 
 WiFiUDP Udp;
 
-const IPAddress serverIp(192, 168, 0, 140); // 192, 168, 0, 140
-const unsigned int serverPort = 32000;
+const IPAddress serverIp(192, 168, 0, 197); // 192, 168, 0, 140
+const unsigned int serverPort = 32003; // 32000, 32001, 32002, 32003
+
 
 
 unsigned long time_now = 0; //in order to keep the time so that we can simulate delay() without blocking the loop() function
@@ -49,9 +50,11 @@ void setup() {
   // put your setup code here, to run once:
 Serial.begin(9600);
 
-//  while (!Serial) {
-//    ; // wait for serial port to connect. Needed for native USB port only
-//  }
+// configuring Arduino pins for solenoid control to behave as output
+pinMode(solenoidPin1, OUTPUT);
+pinMode(solenoidPin2, OUTPUT);
+
+
 
 // checking the presence of MKR Motor Shield  
   if (controller.begin()) 
@@ -116,7 +119,9 @@ void loop() {
         }
       }
 
-    OSCBundle bundleIN;
+
+    OSCMessage bundleIN;
+
     int size;
 
     if ( (size = Udp.parsePacket()) > 0)
@@ -178,7 +183,7 @@ void routeInflate(OSCMessage &msg) {
     //get that float
     float data = msg.getFloat(0);
 
-    //Serial.println(data);
+    Serial.println(data);
     inflatePower = (int) data;
 
   }
@@ -198,9 +203,15 @@ void routeDeflateDur(OSCMessage &msg) {
 void inflate()
 {
     M1.setDuty(inflatePower);
-    M2.setDuty(0);
-    M3.setDuty(0);
-    M4.setDuty(40);
+    //M2.setDuty(0);
+    //M3.setDuty(0);
+    //M4.setDuty(40);
+
+   digitalWrite(solenoidPin1, LOW);
+   digitalWrite(solenoidPin2, HIGH);
+
+
+    
    // Serial.println("Inflate");
   
   }
@@ -208,33 +219,35 @@ void inflate()
 void deflate()
 {
     M1.setDuty(abs(inflatePower));
-    M2.setDuty(0);
-    M3.setDuty(40);
-    M4.setDuty(0);
+    //M2.setDuty(0);
+    //M3.setDuty(40);
+    //M4.setDuty(0);
     //Serial.println("Deflate");
+    
+    digitalWrite(solenoidPin1, HIGH);
+    digitalWrite(solenoidPin2, LOW);
+
+    
   }
   
 void hold()
 {
     M1.setDuty(0);
-    M2.setDuty(0);
-
-    //if we isolate the pillow from the motor loop 
+    //M2.setDuty(0);
     //M3.setDuty(40);
     //M4.setDuty(40);
-    //or we keep the pillow connected to the motor loop - may add air leakage to the system
-    M3.setDuty(0);
-    M4.setDuty(0);
-
-    
    // Serial.println("Hold");
+
+    digitalWrite(solenoidPin1, HIGH);
+    digitalWrite(solenoidPin2, HIGH);
   }
 
 float getPressure()
 {
+
     float pressure_hPa = mpr.readPressure();
     Serial.print("Pressure (hPa): "); Serial.println(pressure_hPa);
-    //Serial.print("Pressure (PSI): "); Serial.println(pressure_hPa / 68.947572932); 
+    Serial.print("Pressure (PSI): "); Serial.println(pressure_hPa / 68.947572932); 
     return mpr.readPressure();
 }  
 
@@ -253,8 +266,8 @@ void sendOSCPressure(float pressure) {
 
 void connectToServer() {
 
-  //Serial.print("\nConnecting to server bit at ");
-  //Serial.print(serverIp); Serial.print(":"); Serial.println(serverPort);
+  Serial.print("\nConnecting to server bit at ");
+  Serial.print(serverIp); Serial.print(":"); Serial.println(serverPort);
 
   OSCMessage msg("/actuator/startConnection/");
 

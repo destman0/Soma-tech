@@ -35,8 +35,8 @@ char packetBuffer[255]; //buffer to hold incoming packet
 
 WiFiUDP Udp;
 
-const IPAddress serverIp(192, 168, 0, 140); // 192, 168, 0, 140
-const unsigned int serverPort = 32000;
+const IPAddress serverIp(192, 168, 0, 197); // 192, 168, 0, 140
+const unsigned int serverPort = 32002;
 
 
 unsigned long time_now = 0; //in order to keep the time so that we can simulate delay() without blocking the loop() function
@@ -220,11 +220,11 @@ void hold()
     M2.setDuty(0);
 
     //if we isolate the pillow from the motor loop 
-    //M3.setDuty(40);
-    //M4.setDuty(40);
+    M3.setDuty(40);
+    M4.setDuty(40);
     //or we keep the pillow connected to the motor loop - may add air leakage to the system
-    M3.setDuty(0);
-    M4.setDuty(0);
+    //M3.setDuty(0);
+    //M4.setDuty(0);
 
     
    // Serial.println("Hold");

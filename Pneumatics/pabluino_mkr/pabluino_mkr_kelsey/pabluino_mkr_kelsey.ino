@@ -1,4 +1,3 @@
-
 /*
 The following code is based on following examples:
 
@@ -30,13 +29,13 @@ char pass[] = "somaserv";    // your network password (use for WPA, or use as ke
 int status = WL_IDLE_STATUS;     // the WiFi radio's status
 
 unsigned int localPort = 12000;      // local port to listen on
-
 char packetBuffer[255]; //buffer to hold incoming packet
 
 WiFiUDP Udp;
 
-const IPAddress serverIp(192, 168, 0, 140); // 192, 168, 0, 140
-const unsigned int serverPort = 32000;
+const IPAddress serverIp(192, 168, 0, 197); // 192, 168, 0, 140
+
+const unsigned int serverPort = 32000; // Change to 32001, 32002, 32003
 
 
 unsigned long time_now = 0; //in order to keep the time so that we can simulate delay() without blocking the loop() function
@@ -116,7 +115,7 @@ void loop() {
         }
       }
 
-    OSCBundle bundleIN;
+    OSCMessage bundleIN;
     int size;
 
     if ( (size = Udp.parsePacket()) > 0)
@@ -163,12 +162,12 @@ void loop() {
     }
 
     //this is just while Pavel does not add physical buttons! WHen he does, delete this code
-     if(millis() > time_now_connect_server + period_connect_server){
-        time_now_connect_server = millis();
-        sendOSCPressure(getPressure());
-        connectToServer();
-        delay(50);
-    }
+//     if(millis() > time_now_connect_server + period_connect_server){
+//        time_now_connect_server = millis();
+//        sendOSCPressure(getPressure());
+//        connectToServer();
+//        delay(50);
+//    }
      
 }
 
@@ -178,7 +177,7 @@ void routeInflate(OSCMessage &msg) {
     //get that float
     float data = msg.getFloat(0);
 
-    //Serial.println(data);
+    Serial.println(data);
     inflatePower = (int) data;
 
   }
@@ -199,17 +198,17 @@ void inflate()
 {
     M1.setDuty(inflatePower);
     M2.setDuty(0);
-    M3.setDuty(0);
-    M4.setDuty(40);
+    M3.setDuty(40);
+    M4.setDuty(0);
    // Serial.println("Inflate");
   
   }
 
 void deflate()
 {
-    M1.setDuty(abs(inflatePower));
-    M2.setDuty(0);
-    M3.setDuty(40);
+    M1.setDuty(0);
+    M2.setDuty(abs(inflatePower));
+    M3.setDuty(0);
     M4.setDuty(0);
     //Serial.println("Deflate");
   }
@@ -218,24 +217,16 @@ void hold()
 {
     M1.setDuty(0);
     M2.setDuty(0);
-
-    //if we isolate the pillow from the motor loop 
-    //M3.setDuty(40);
-    //M4.setDuty(40);
-    //or we keep the pillow connected to the motor loop - may add air leakage to the system
     M3.setDuty(0);
-    M4.setDuty(0);
-
-    
+    M4.setDuty(40);
    // Serial.println("Hold");
   }
 
 float getPressure()
 {
-    float pressure_hPa = mpr.readPressure();
-    Serial.print("Pressure (hPa): "); Serial.println(pressure_hPa);
-    //Serial.print("Pressure (PSI): "); Serial.println(pressure_hPa / 68.947572932); 
     return mpr.readPressure();
+//    Serial.print("Pressure (hPa): "); Serial.println(pressure_hPa);
+//    Serial.print("Pressure (PSI): "); Serial.println(pressure_hPa / 68.947572932);
 }  
 
 void sendOSCPressure(float pressure) {
@@ -253,8 +244,8 @@ void sendOSCPressure(float pressure) {
 
 void connectToServer() {
 
-  //Serial.print("\nConnecting to server bit at ");
-  //Serial.print(serverIp); Serial.print(":"); Serial.println(serverPort);
+  Serial.print("\nConnecting to server bit at ");
+  Serial.print(serverIp); Serial.print(":"); Serial.println(serverPort);
 
   OSCMessage msg("/actuator/startConnection/");
 
