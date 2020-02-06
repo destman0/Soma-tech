@@ -36,9 +36,8 @@ char packetBuffer[255]; //buffer to hold incoming packet
 WiFiUDP Udp;
 
 const IPAddress serverIp(192, 168, 0, 197); // 192, 168, 0, 140
+
 const unsigned int serverPort = 32003; // 32000, 32001, 32002, 32003
-
-
 
 unsigned long time_now = 0; //in order to keep the time so that we can simulate delay() without blocking the loop() function
 int period = 20;  //how often in miliseconds to send the pressure to the server
@@ -118,6 +117,7 @@ void loop() {
           delay(50);
         }
       }
+
 
 
     OSCMessage bundleIN;
