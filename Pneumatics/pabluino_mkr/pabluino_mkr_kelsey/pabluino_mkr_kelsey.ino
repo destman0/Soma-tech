@@ -35,7 +35,7 @@ WiFiUDP Udp;
 
 const IPAddress serverIp(192, 168, 0, 197); // 192, 168, 0, 140
 
-const unsigned int serverPort = 32000; // Change to 32001, 32002, 32003
+const unsigned int serverPort = 32002; // Change to 32001, 32002, 32003
 
 
 unsigned long time_now = 0; //in order to keep the time so that we can simulate delay() without blocking the loop() function
@@ -198,17 +198,17 @@ void inflate()
 {
     M1.setDuty(inflatePower);
     M2.setDuty(0);
-    M3.setDuty(40);
-    M4.setDuty(0);
+    M3.setDuty(0);
+    M4.setDuty(40);
    // Serial.println("Inflate");
   
   }
 
 void deflate()
 {
-    M1.setDuty(0);
-    M2.setDuty(abs(inflatePower));
-    M3.setDuty(0);
+    M1.setDuty(abs(inflatePower));
+    M2.setDuty(0);
+    M3.setDuty(40);
     M4.setDuty(0);
     //Serial.println("Deflate");
   }
@@ -217,7 +217,7 @@ void hold()
 {
     M1.setDuty(0);
     M2.setDuty(0);
-    M3.setDuty(0);
+    M3.setDuty(40);
     M4.setDuty(40);
    // Serial.println("Hold");
   }

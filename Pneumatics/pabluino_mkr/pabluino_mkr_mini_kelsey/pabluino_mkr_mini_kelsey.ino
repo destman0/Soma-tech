@@ -36,7 +36,8 @@ char packetBuffer[255]; //buffer to hold incoming packet
 WiFiUDP Udp;
 
 const IPAddress serverIp(192, 168, 0, 197); // 192, 168, 0, 140
-const unsigned int serverPort = 32002;
+const unsigned int serverPort = 32002; // Change to 32000, 32001, 32002, 32003
+
 
 
 unsigned long time_now = 0; //in order to keep the time so that we can simulate delay() without blocking the loop() function
@@ -116,7 +117,7 @@ void loop() {
         }
       }
 
-    OSCBundle bundleIN;
+    OSCMessage bundleIN;
     int size;
 
     if ( (size = Udp.parsePacket()) > 0)
