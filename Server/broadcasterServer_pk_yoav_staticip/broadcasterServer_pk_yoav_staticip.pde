@@ -1,7 +1,7 @@
- /**
+/**
  * SOMA BITS broadcasting server 
  * Created 2019-02-26
- * by p_sanches 
+ * by p_sanches
  *
  * /sensor/[sid]/[anypath] [float]
  * /actuator/[sid]/[anypath] [float]
@@ -9,7 +9,7 @@
  * Based on:
  *
  * oscP5broadcaster by andreas schlegel
- * an osc broadcast server.
+  * an osc broadcast server.
  * osc clients can connect to the server by sending a connect and
  * disconnect osc message as defined below to the server.
  * incoming messages at the server will then be broadcasted to
@@ -44,7 +44,7 @@ boolean couplingAccSound = false;
 boolean couplingAccInfl = false;
 boolean couplingPressureInfl = false;
 boolean horsePillow = false;
-boolean pressureInterplay = false;
+boolean pressureInterplay = true;
 //----------------------------------------------Each coupling has to be run separately
 
 
@@ -82,17 +82,60 @@ NetAddressList SensorNetAddressList = new NetAddressList();
 NetAddressList ActuatorNetAddressList = new NetAddressList();
 
 int indexIP = 0;
-HashMap<String, Integer> DeviceIPs = new HashMap<String, Integer>();
+
+enum DeviceRole {
+    Sensor,
+    Actuator,
+    Both
+};
+class Device {
+    int id;
+    DeviceRole role;
+    Device(int id, DeviceRole role) {
+        this.id = id;
+        this.role = role;
+    }
+    boolean isSensor() {
+        return role == DeviceRole.Sensor || role == DeviceRole.Both;
+    }
+    boolean isActuator() {
+        return role == DeviceRole.Actuator || role == DeviceRole.Both;
+    }
+};
+HashMap<String, Device> DeviceIPs = new HashMap<String, Device>();
+{{
+  DeviceIPs.put("192.168.0.11", new Device(1, DeviceRole.Both));
+  DeviceIPs.put("192.168.0.12", new Device(2, DeviceRole.Both));
+  DeviceIPs.put("192.168.0.13", new Device(3, DeviceRole.Both));
+  DeviceIPs.put("192.168.0.14", new Device(4, DeviceRole.Both));
+}}
+
+Map<String, Device> getActuators() {
+    Map<String, Device> result = new HashMap<String, Device>();
+    for (Map.Entry<String, Device> entry : DeviceIPs.entrySet()) {
+        if (entry.getValue().isActuator()) {
+            result.put(entry.getKey(), entry.getValue());
+        }
+    }
+    return result;
+}
+
+Map<String, Device> getSensors() {
+    Map<String, Device> result = new HashMap<String, Device>();
+    for (Map.Entry<String, Device> entry : DeviceIPs.entrySet()) {
+        if (entry.getValue().isSensor()) {
+            result.put(entry.getKey(), entry.getValue());
+        }
+    }
+    return result;
+}
 
 NetAddress wekinator;
-
 
 //data structure to hold all sensor data
 HashMap<String,Object[]> sensorInputs = new HashMap<String,Object[]>();
 
 HashMap<String,Object[]> actuatorInputs = new HashMap<String,Object[]>();
-
-
 
 /* listeningPort is the port the server is listening for incoming messages */
 int myListeningPort = 32000;
@@ -126,7 +169,7 @@ void setup() {
   oscP5 = new OscP5(this, myListeningPort);
   wekinator = new NetAddress("127.0.0.1",6448);
   
-  connectActuator("127.0.0.1");
+  // connectActuator("127.0.0.1");
   size(800,800);
   smooth();
    
@@ -159,13 +202,20 @@ void setup() {
     // Create the oscillators
     sineWaves[i] = new SinOsc(this);
     // Start Oscillators
-    sineWaves[i].play();
+    // sineWaves[i].play();
     // Set the amplitudes for all oscillators
     sineWaves[i].amp(sineVolume);
   }
 
   myFilter = new SignalFilter(this);
   
+  ActuatorNetAddressList.add(new NetAddress("127.0.0.1", myBroadcastPort));
+  for (Map.Entry<String, Device> sensor : getSensors().entrySet()) {
+    SensorNetAddressList.add(new NetAddress(sensor.getKey(), myBroadcastPort));
+  }
+  for (Map.Entry<String, Device> actuator : getActuators().entrySet()) {
+    ActuatorNetAddressList.add(new NetAddress(actuator.getKey(), myBroadcastPort));
+  }
 }
 
 // function Start will receive changes from 
@@ -398,36 +448,30 @@ float pressure4 = 0;
 
   
 
-  if(sensorInputs.get(String.join("/",Integer.toString(firstCouplingSensorId),"pressure")) != null) {
+  if(sensorInputs.get("1/pressure") != null) {
         //float yoffset = map(mouseY, 0, height, 0, 1);
-        pressure1 = (Float) sensorInputs.get(String.join("/",Integer.toString(firstCouplingSensorId),"pressure"))[0];
-        
-       print("Pressure 1: ");
-       println(pressure1);
+        pressure1 = (Float) sensorInputs.get("1/pressure")[0];
+       // print("Pressure 1: ");
+       // println(pressure1);
   }   
-      if(sensorInputs.get(String.join("/",Integer.toString(secondCouplingSensorId),"pressure")) != null) {
-          //float yoffset = map(mouseY, 0, height, 0, 1);
-          pressure2 = (Float) sensorInputs.get(String.join("/",Integer.toString(secondCouplingSensorId),"pressure"))[0];
-        print("Pressure 2: ");
-        println(pressure2);
+  if(sensorInputs.get("2/pressure") != null) {
+        //float yoffset = map(mouseY, 0, height, 0, 1);
+        pressure2 = (Float) sensorInputs.get("2/pressure")[0];
+    // print("Pressure 2: ");
+    // println(pressure2);
       
     }
-
-
-  if(sensorInputs.get(String.join("/",Integer.toString(thirdCouplingSensorId),"pressure")) != null) {
+  if(sensorInputs.get("3/pressure") != null) {
         //float yoffset = map(mouseY, 0, height, 0, 1);
-        pressure3 = (Float) sensorInputs.get(String.join("/",Integer.toString(thirdCouplingSensorId),"pressure"))[0];
-        
-       print("Pressure 3: ");
-       println(pressure3);
+        pressure3 = (Float) sensorInputs.get("3/pressure")[0];
+       // print("Pressure 3: ");
+       // println(pressure3);
   }
-  
-    if(sensorInputs.get(String.join("/",Integer.toString(fourthCouplingSensorId),"pressure")) != null) {
+    if(sensorInputs.get("4/pressure") != null) {
         //float yoffset = map(mouseY, 0, height, 0, 1);
-        pressure4 = (Float) sensorInputs.get(String.join("/",Integer.toString(fourthCouplingSensorId),"pressure"))[0];
-        
-       print("Pressure 4: ");
-       println(pressure4);
+        pressure4 = (Float) sensorInputs.get("4/pressure")[0];
+       // print("Pressure 4: ");
+       // println(pressure4);
   }
 
 /*
@@ -460,15 +504,15 @@ if (calibrated == true)
 OscMessage myMessage2;
 myMessage2 = new OscMessage("/actuator/inflate");
 if ( abs (pressure2 - pressure1) < 50.0){
-print("Bit 2 - Standby");
+// print("Bit 2 - Standby");
 }
 else if (pressure2 > pressure1){
 myMessage2.add(-50.0);
-print("Bit 2 - Deflate");
+// print("Bit 2 - Deflate");
 }
 else if (pressure2 < pressure1){
 myMessage2.add(50.0);
-print("Bit 2 - Inflate");
+// print("Bit 2 - Inflate");
 }  
 
 sendToOneActuator(myMessage2, 2);
@@ -476,15 +520,15 @@ sendToOneActuator(myMessage2, 2);
 OscMessage myMessage3;
 myMessage3 = new OscMessage("/actuator/inflate");
 if ( abs (pressure3 - pressure1) < 50.0){
-print("Bit 3 - Standby");
+// print("Bit 3 - Standby");
 }
 else if (pressure3 > pressure1){
 myMessage3.add(-50.0);
-print("Bit 3 - Deflate");
+// print("Bit 3 - Deflate");
 }
 else if (pressure3 < pressure1){
 myMessage3.add(50.0);
-print("Bit 3 - Inflate");
+// print("Bit 3 - Inflate");
 }  
 
 sendToOneActuator(myMessage3, 3);
@@ -495,15 +539,15 @@ sendToOneActuator(myMessage3, 3);
 OscMessage myMessage4;
 myMessage4 = new OscMessage("/actuator/inflate");
 if ( abs (pressure4 - pressure1) < 50.0){
-  print("Bit 4 - Standby");
+  // print("Bit 4 - Standby");
 }
 else if (pressure4 > pressure1){
 myMessage4.add(-50.0);
-print("Bit 4 - Deflate");
+// print("Bit 4 - Deflate");
 }
 else if (pressure4 < pressure1){
 myMessage4.add(50.0);
-print("Bit 4 - Inflate");
+// print("Bit 4 - Inflate");
 }  
 
 sendToOneActuator(myMessage4, 4);
@@ -802,19 +846,19 @@ void CoupleACCSineWave(){
 
 
 void oscEvent(OscMessage theOscMessage) {
-  //println("### OSC MESSAGE ARRIVED");
   /* check if the address pattern fits any of our patterns */
   if (theOscMessage.addrPattern().equals(SensorConnectPattern)) {
-    connectSensor(theOscMessage.netAddress().address());
+    // connectSensor(theOscMessage.netAddress().address());
   }
   else if (theOscMessage.addrPattern().equals(SensorDisconnectPattern)) {
-    disconnectSensor(theOscMessage.netAddress().address());
+    // disconnectSensor(theOscMessage.netAddress().address());
   }
   else if (theOscMessage.addrPattern().equals(ActuatorConnectPattern)) {
-    connectActuator(theOscMessage.netAddress().address());
+      println("Connect actuator message " + theOscMessage);
+    // connectActuator(theOscMessage.netAddress().address());
   }
   else if (theOscMessage.addrPattern().equals(ActuatorDisconnectPattern)) {
-    disconnectActuator(theOscMessage.netAddress().address());
+    // disconnectActuator(theOscMessage.netAddress().address());
   }
   else if (theOscMessage.addrPattern().equals(wekaPattern)) {
     //custom code to deal with it (replace function when needed)
@@ -846,7 +890,7 @@ void oscEvent(OscMessage theOscMessage) {
     //sendAllSensorData();
   }
   else if(theOscMessage.addrPattern().contains("/actuator")){
-    
+      println("Actuator message");
     int id = messageContainsID(theOscMessage);
     
     if(id == -1)
@@ -928,19 +972,18 @@ private String cleanActuatorPattern(OscMessage theOscMessage){
 
 // /sensor/x becomes /[id]/sensor/x
 void addSensorValuetoHashMap(OscMessage theOscMessage){
-  
   int id = getDeviceId(theOscMessage.netAddress());
-  if(id == -1)
-    id = connectSensor(theOscMessage.netAddress().address());
+//  if(id == -1)
+//    id = connectSensor(theOscMessage.netAddress().address());
     
  
   
   //remove the "/sensor" part
   String[] addrComponents = theOscMessage.addrPattern().split("/");
   
-  //System.out.println("## PRINTING addrComponents"); 
-  //for (String a : addrComponents) 
-  //          System.out.println(a); 
+  // System.out.println("## PRINTING addrComponents"); 
+  // for (String a : addrComponents) 
+  //           System.out.println(a); 
    
   String[] address = new String[addrComponents.length-1];
   
@@ -949,30 +992,28 @@ void addSensorValuetoHashMap(OscMessage theOscMessage){
   for(int i=2;i<addrComponents.length; i++){ //i starts at 2 to jump past the initial blankspace "" and the word "sensor"
     address[i-1] = addrComponents[i];
   }
-
-  addToSensorInputs(join(address,"/"), theOscMessage.arguments());
+  String sensorId = join(address,"/");
+  addToSensorInputs(sensorId, theOscMessage.arguments());
 }
 
 int getDeviceId(NetAddress address){
- Integer id = DeviceIPs.get(address.address());
- if(id==null) return -1;
- else return id;
+  Device device = DeviceIPs.get(address.address());
+  return (device != null) ? device.id : - 1;
 }
 
 String getDeviceAddress(int id){
-
-   for (HashMap.Entry<String, Integer> entry : DeviceIPs.entrySet()) {
-            if (entry.getValue().equals(id)) {
-                return(entry.getKey());
-            }
-        }
-    return null;
+  for (HashMap.Entry<String, Device> entry : DeviceIPs.entrySet()) {
+    if (entry.getValue().id == id) {
+       return(entry.getKey());
+    }
+  }
+  return null;
 }
 
 
 void sendToOneActuator(OscMessage theOscMessage, int id){
   
-  System.out.println("## Sending to one actuator with ID "+ id);
+  // System.out.println("## Sending to one actuator with ID "+ id);
   
   String addr = getDeviceAddress(id);
   if(addr==null){
@@ -991,6 +1032,7 @@ void sendToOneActuator(OscMessage theOscMessage, int id){
   myBundle.add(theOscMessage);
  
   myBundle.setTimetag(myBundle.now() + 10000);
+  // println("Sending to " + id + " at " + actuatorNetAddress.address() + " message " + theOscMessage);
   /* send the osc bundle, containing 1 osc messages, to all actuators. */
   oscP5.send(myBundle, actuatorNetAddress);
 }
@@ -1057,6 +1099,7 @@ void printOSCMessage(OscMessage theOscMessage) {
    println(" ## Ending of message");
 }
 
+/*
 private int connectSensor(String theIPaddress) {
   int id = addIPAddress(theIPaddress);
      if (!SensorNetAddressList.contains(theIPaddress, myBroadcastPort)) {
@@ -1066,64 +1109,33 @@ private int connectSensor(String theIPaddress) {
        println("### Sensor "+theIPaddress+" is already connected. The ID is "+id);
      }
      println("### currently there are "+SensorNetAddressList.list().size()+" sensors connected.");
-     
+    
       //this is hardcoded just for couplings
       if(SensorNetAddressList.list().size() == 1){
         firstCouplingSensorId = id;
         //println(firstCouplingSensorId);
       }
-      
+     
        //this is hardcoded just for couplings
       if(SensorNetAddressList.list().size() == 2){
         secondCouplingSensorId = id;
         //println(firstCouplingSensorId);
       }
-      
+     
        //this is hardcoded just for couplings
       if(SensorNetAddressList.list().size() == 3){
         thirdCouplingSensorId = id;
         //println(firstCouplingSensorId);
       }
-      
-      
+     
+     
        if(SensorNetAddressList.list().size() == 4){
         fourthCouplingSensorId = id;
         //println(firstCouplingSensorId);
       }
-     
+    
      return id;
  }
-
-private int addIPAddress(String IPAddress){
-  //HashMap<String, Integer>
-  Integer id = DeviceIPs.putIfAbsent(IPAddress, new Integer(indexIP));
-  println("WTF is ID?"+id);
-  
-  
-  if(id==null){ //it is new!
-  
-  if (IPAddress.equals("192.168.0.11")){
-  id = 1;
-  }
-  else if (IPAddress.equals("192.168.0.12")){
-  id = 2;
-  }
-  else if (IPAddress.equals("192.168.0.13")){
-  id = 3;
-  }
-  else if (IPAddress.equals("192.168.0.14")){
-  id = 4;
-  }
-  else
-  {
-    id= DeviceIPs.get(IPAddress);
-    indexIP++;
-  }
-  }
-        
-  return id;
-
-}
 
 private void disconnectSensor(String theIPaddress) {
 if (SensorNetAddressList.contains(theIPaddress, myBroadcastPort)) {
@@ -1159,6 +1171,7 @@ if (ActuatorNetAddressList.contains(theIPaddress, myBroadcastPort)) {
      }
        println("### Actuators: currently there are "+ActuatorNetAddressList.list().size());
  }
+*/
 
 void trainWekinatorWithAllSensors() {
   //println("entering");
