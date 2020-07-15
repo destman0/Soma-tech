@@ -40,11 +40,13 @@ float beta      = 7.0;  // increase this to get rid of high speed lag
 
 
 //NEVER SET MORE THAN ONE OF THESE TO TRUE! Each coupling can only be run separately
-boolean couplingAccSound = false;
-boolean couplingAccInfl = false;
-boolean couplingPressureInfl = false;
-boolean horsePillow = false;
-boolean pressureInterplay = true;
+boolean interact1 = false;
+boolean interact2 = false;
+boolean interact3 = false;
+boolean deflatall = false;
+boolean stopall = false;
+
+
 //----------------------------------------------Each coupling has to be run separately
 
 
@@ -153,6 +155,10 @@ String wekaPattern = "/wek/outputs";
 String riotPattern= "/0/";
 
 ControlP5 cp5;
+
+Textarea myTextarea;
+
+
 PrintWriter output;
 
 int myColor = color(255);
@@ -176,20 +182,56 @@ void setup() {
   noStroke();
   cp5 = new ControlP5(this);
   
-  // create a new button with name 'buttonA'
-  cp5.addButton("Write")
+
+  cp5.addButton("Interaction_1")
      .setValue(0)
      .setPosition(100,100)
-     .setSize(200,99)
+     .setSize(600,90)
      ;
   
-  // and add another 2 buttons
-  cp5.addButton("EndFile")
+
+  cp5.addButton("Interaction_2")
      .setValue(100)
      .setPosition(100,200)
-     .setSize(200,99)
+     .setSize(600,90)
      ;
-  
+     
+  cp5.addButton("Interaction_3")
+     .setValue(100)
+     .setPosition(100,300)
+     .setSize(600,90)
+     ;     
+ 
+    cp5.addButton("Deflate_All")
+     .setValue(100)
+     .setPosition(100,400)
+     .setSize(600,90)
+     .setColorBackground(0xff008888);
+     ;
+     
+   cp5.addButton("Stop_All")
+     .setValue(100)
+     .setPosition(100,500)
+     .setSize(600,90)
+     //.setColor(cc)
+     .setColorBackground(0xff880000);
+     ;   
+     
+
+
+myTextarea = cp5.addTextarea("txt")
+                  .setPosition(100,650)
+                  .setSize(600,150)
+                  .setFont(createFont("arial",18))
+                  .setLineHeight(14)
+                  .setColor(color(128))
+                  .setColorBackground(color(255,100))
+                  .setColorForeground(color(255,100));
+                  ;
+
+
+
+ 
   frameRate(60);
   
    //set up sound coupling
@@ -267,6 +309,52 @@ public void EndFile(int theValue) {
   }
 }
 
+public void Interaction_1() {    
+println("Number One");
+interact1 = true;
+interact2 = false;
+interact3 = false;
+deflatall = false;
+stopall = false;
+}
+public void Interaction_2() {    
+println("Number Two");
+interact1 = false;
+interact2 = true;
+interact3 = false;
+deflatall = false;
+stopall = false;
+}
+public void Interaction_3() {    
+println("Number Three");
+interact1 = false;
+interact2 = false;
+interact3 = true;
+deflatall = false;
+stopall = false;
+}
+
+public void Deflate_All() {
+println("Deflating all units");
+interact1 = false;
+interact2 = false;
+interact3 = false;
+deflatall = true;
+stopall = false;
+}
+
+public void Stop_All() {
+println("Stop");
+interact1 = false;
+interact2 = false;
+interact3 = false;
+deflatall = false;
+stopall = true;
+}
+
+
+
+
 void draw() {
   background(myColor);
   myColor = lerpColor(c1,c2,n);
@@ -305,137 +393,66 @@ void draw() {
   
   //plotPressure();
   // display all values however you want
-  for (int i=0; i<arrayOfFloats.length; i++) {
-    noStroke();
-    fill(255,0,0,255);
-    ellipse(width*i/arrayOfFloats.length+width/num/2,height-arrayOfFloats[i],width/num,width/num);
-  }
+  //for (int i=0; i<arrayOfFloats.length; i++) {
+  //  noStroke();
+  //  fill(255,0,0,255);
+  //  ellipse(width*i/arrayOfFloats.length+width/num/2,height-arrayOfFloats[i],width/num,width/num);
+  //}
   
+float pressure1 = 0;
+float pressure2 = 0; 
+float pressure3 = 0;  
+float pressure4 = 0;  
+
+if(sensorInputs.get("1/pressure") != null) {
+        pressure1 = (Float) sensorInputs.get("1/pressure")[0];
+}
+if(sensorInputs.get("2/pressure") != null) {
+        pressure2 = (Float) sensorInputs.get("2/pressure")[0];
+}
+if(sensorInputs.get("3/pressure") != null) {
+        pressure3 = (Float) sensorInputs.get("3/pressure")[0];
+}
+if(sensorInputs.get("4/pressure") != null) {
+        pressure4 = (Float) sensorInputs.get("4/pressure")[0];
+}
+
+myTextarea.setText("Pressure in the bit number one:    "+(pressure1)+" \n\n"
+                      +"Pressure in the bit number two:     "+(pressure2)+" \n\n"
+                      +"Pressure in the bit number three:   "+(pressure3)+"\n\n"
+                      +"Pressure in the bit number four:     "+(pressure4)
+                      );
+                      
   
-  if(couplingAccSound){
-    CoupleACCSineWave();
-  }
-  else 
-  
-  //if(!overrideCoupling){
-      if(couplingAccInfl){
+
+      if(interact1){
         //plotPressure();
-        CoupleACCInflate();
-      }else if(couplingPressureInfl){
-        plotPressure();
-        CouplePressureInflate();
+        interaction_One();
+      }else if(interact2){
+        //plotPressure();
+        interaction_Two();
       }
-      else if(horsePillow){
-        runLikeTheWind();
+      else if(interact3){
+        interaction_Three();
       }
-      else if(pressureInterplay){
-        MaintainPressure();
+      else if(deflatall){
+        deflating_Units();
       }
+      else if(stopall){
+        stopping_Units();
+      }
+
+
+
+
+
+
+
 }
+void interaction_One(){
+println("Pavel's first interaction");
 
 
-float last_pressure1 = 0;
-float last_pressure2 = 0;
-
-void runLikeTheWind(){
-   // copy everything one value down
-  for (int i=0; i<arrayOfFloats.length-1; i++) {
-    arrayOfFloats[i] = arrayOfFloats[i+1];
-  }
-  
- float minCutoff = 0.02; // decrease this to get rid of slow speed jitter
-  float beta      = 20.0;  // increase this to get rid of high speed lag
-  
-  // Pass the parameters to the filter
-  myFilter.setMinCutoff(minCutoff);
-  myFilter.setBeta(beta);
-  
-  float pressure1 = 0;//noise(frameCount*0.01)*width;
-  float pressure2 = 0;
-  
-  float difference = 0;
-  
-  //println(newValue);
-  
-  if(sensorInputs.get(String.join("/",Integer.toString(firstCouplingSensorId),"pressure")) != null) {
-        //float yoffset = map(mouseY, 0, height, 0, 1);
-        pressure1 = (Float) sensorInputs.get(String.join("/",Integer.toString(firstCouplingSensorId),"pressure"))[0];
-        
-       // println("Pressure 1 OK");
-      
-      if(sensorInputs.get(String.join("/",Integer.toString(secondCouplingSensorId),"pressure")) != null) {
-          //float yoffset = map(mouseY, 0, height, 0, 1);
-          pressure2 = (Float) sensorInputs.get(String.join("/",Integer.toString(secondCouplingSensorId),"pressure"))[0];
-         // println("Pressure 2 OK");
-          difference = pressure1-pressure2; //if pressure1 is bigger, inflate actuator 2, and vice-versa
-          
-          
-         difference= myFilter.filterUnitFloat( difference );
-        
-         
-         if((abs(pressure1-last_pressure1) < 1) && (abs(pressure2-last_pressure2) < 1)){ //no real difference in pressure, probably no one is touching both 
-           return;
-         }
-         else {
-           last_pressure1 = pressure1;
-           last_pressure2 = pressure2;
-         }
-         
-         //difference = difference * (100/abs(difference));
- 
-         println(pressure1, pressure2, difference);
-         
-         difference = constrain(difference*1.5, -100, 100);
-         
-         println(pressure1, pressure2, difference);
-          
-          if(difference > 2){
-              //pressure 1 is higher: deflate 1 at double speed, inflate 2, hope for the best
-              
-              OscMessage myMessage1;
-              myMessage1 = new OscMessage("/actuator/inflate");
-              myMessage1.add(constrain(-difference, -100, 100)); 
-              sendToOneActuator(myMessage1, 1);
-               
-              OscMessage myMessage2;
-              myMessage2 = new OscMessage("/actuator/inflate");
-              myMessage2.add(difference); 
-              sendToOneActuator(myMessage2, 2);
-              
-           }
-           else if(difference < -2){
-               //pressure 2 is higher: inflate 1, deflate 2 at double speed, hope for the best
-              
-              OscMessage myMessage1;
-              myMessage1 = new OscMessage("/actuator/inflate");
-              myMessage1.add(abs(difference)); 
-              sendToOneActuator(myMessage1, 1);
-               
-              OscMessage myMessage2;
-              myMessage2 = new OscMessage("/actuator/inflate");
-              myMessage2.add(constrain(difference, -100, 100)); 
-              sendToOneActuator(myMessage2, 2);
-       
-             }
-      }
-  }
-  
-
-  
-  // set last value to the new value
-  arrayOfFloats[arrayOfFloats.length-1] = pressure1/2;//(difference*10)+200;
- 
-  // display all values however you want
-  for (int i=0; i<arrayOfFloats.length; i++) {
-    noStroke();
-    fill(255,0,0,255);
-    ellipse(width*i/arrayOfFloats.length+width/num/2,height-arrayOfFloats[i],width/num,width/num);
-  }
-}
-
-
-void MaintainPressure(){
-  
 //for (int i=0; i<arrayOfFloats.length-1; i++) {
 //    arrayOfFloats[i] = arrayOfFloats[i+1];
 //  }  
@@ -451,27 +468,27 @@ float pressure4 = 0;
   if(sensorInputs.get("1/pressure") != null) {
         //float yoffset = map(mouseY, 0, height, 0, 1);
         pressure1 = (Float) sensorInputs.get("1/pressure")[0];
-       // print("Pressure 1: ");
-       // println(pressure1);
+       print("Pressure 1: ");
+       println(pressure1);
   }   
   if(sensorInputs.get("2/pressure") != null) {
         //float yoffset = map(mouseY, 0, height, 0, 1);
         pressure2 = (Float) sensorInputs.get("2/pressure")[0];
-    // print("Pressure 2: ");
-    // println(pressure2);
+    print("Pressure 2: ");
+    println(pressure2);
       
     }
   if(sensorInputs.get("3/pressure") != null) {
         //float yoffset = map(mouseY, 0, height, 0, 1);
         pressure3 = (Float) sensorInputs.get("3/pressure")[0];
-       // print("Pressure 3: ");
-       // println(pressure3);
+       print("Pressure 3: ");
+       println(pressure3);
   }
     if(sensorInputs.get("4/pressure") != null) {
         //float yoffset = map(mouseY, 0, height, 0, 1);
         pressure4 = (Float) sensorInputs.get("4/pressure")[0];
-       // print("Pressure 4: ");
-       // println(pressure4);
+       print("Pressure 4: ");
+       println(pressure4);
   }
 
 /*
@@ -556,9 +573,209 @@ sendToOneActuator(myMessage4, 4);
 }
 
 
-//}
+void interaction_Two(){
+println("First interaction with thinking");  
+float pressure1 = 0;
+float pressure2 = 0; 
+float pressure3 = 0;  
+float pressure4 = 0;  
+
+if(sensorInputs.get("1/pressure") != null) {
+        //float yoffset = map(mouseY, 0, height, 0, 1);
+        pressure1 = (Float) sensorInputs.get("1/pressure")[0];
+       print("Pressure 1: ");
+       println(pressure1);
+  }   
+  if(sensorInputs.get("2/pressure") != null) {
+        //float yoffset = map(mouseY, 0, height, 0, 1);
+        pressure2 = (Float) sensorInputs.get("2/pressure")[0];
+    print("Pressure 2: ");
+    println(pressure2);
+      
+    }
+  if(sensorInputs.get("3/pressure") != null) {
+        //float yoffset = map(mouseY, 0, height, 0, 1);
+        pressure3 = (Float) sensorInputs.get("3/pressure")[0];
+       print("Pressure 3: ");
+       println(pressure3);
+  }
+    if(sensorInputs.get("4/pressure") != null) {
+        //float yoffset = map(mouseY, 0, height, 0, 1);
+        pressure4 = (Float) sensorInputs.get("4/pressure")[0];
+       print("Pressure 4: ");
+       println(pressure4);
+  }
+//Interation 2. Bit 1 behavior
+OscMessage myMessage1;
+myMessage1 = new OscMessage("/actuator/inflate");
+if ( pressure1 < 1100.0){
+myMessage1.add(50.0);
+println("Bit1 - Autoinflate");
+}
+else{
+myMessage1.add(0.0);
+println("Bit1 - Standby");
+}
+sendToOneActuator(myMessage1, 1);
+
+//Interation 2. Bit 2 behavior
+OscMessage myMessage2;
+myMessage2 = new OscMessage("/actuator/inflate");
+if ( abs (pressure2 - pressure1) < 10.0){
+// print("Bit 2 - Standby");
+}
+else if ((pressure2 > pressure1)&&( abs (pressure2 - pressure1) < 50.0)){
+myMessage2.add(-20.0);
+// print("Bit 2 - Deflate");
+}
+else if ((pressure2 < pressure1)&&( abs (pressure2 - pressure1) < 50.0)){
+myMessage2.add(20.0);
+// print("Bit 2 - Inflate");
+}  
+else if ((pressure2 > pressure1)&&( abs (pressure2 - pressure1) >= 50.0)){
+myMessage2.add(-100.0);
+// print("Bit 2 - Deflate");
+}
+else if ((pressure2 < pressure1)&&( abs (pressure2 - pressure1) >= 50.0)){
+myMessage2.add(100.0);
+// print("Bit 2 - Inflate");
+} 
+
+sendToOneActuator(myMessage2, 2);
+
+//Interation 2. Bit 3 behavior               
+OscMessage myMessage3;
+myMessage3 = new OscMessage("/actuator/inflate");
+if ( abs (pressure3 - pressure1) < 10.0){
+// print("Bit 3 - Standby");
+}
+else if ((pressure3 > pressure1)&&( abs(pressure3 - pressure1)<50.0)){
+myMessage3.add(-30.0);
+// print("Bit 3 - Deflate");
+}
+else if ((pressure3 < pressure1)&&( abs(pressure3 - pressure1)<50.0)){
+myMessage3.add(30.0);
+// print("Bit 3 - Inflate");
+}  
+else if ((pressure3 > pressure1)&&( abs(pressure3 - pressure1)>=50.0)){
+myMessage3.add(-100.0);
+// print("Bit 3 - Deflate");
+}
+else if ((pressure3 < pressure1)&&( abs(pressure3 - pressure1)>=50.0)){
+myMessage3.add(100.0);
+// print("Bit 3 - Inflate");
+}
 
 
+
+
+sendToOneActuator(myMessage3, 3);
+
+
+//Interation 2. Bit 4 behavior               
+OscMessage myMessage4;
+myMessage4 = new OscMessage("/actuator/inflate");
+if ( abs (pressure4 - pressure1) < 10.0){
+  // print("Bit 4 - Standby");
+}
+else if ((pressure4 > pressure1)&&( abs (pressure4 - pressure1) < 50.0)){
+myMessage4.add(-20.0);
+// print("Bit 4 - Deflate");
+}
+else if ((pressure4 < pressure1)&&( abs (pressure4 - pressure1) < 50.0)){
+myMessage4.add(20.0);
+// print("Bit 4 - Inflate");
+}  
+else if ((pressure4 > pressure1)&&( abs (pressure4 - pressure1) >= 50.0)){
+myMessage4.add(-100.0);
+// print("Bit 4 - Deflate");
+}
+else if ((pressure4 < pressure1)&&( abs (pressure4 - pressure1) >= 50.0)){
+myMessage4.add(100.0);
+// print("Bit 4 - Inflate");
+} 
+sendToOneActuator(myMessage4, 4);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
+
+void interaction_Three(){
+println("I just wanna see the values");  
+float pressure1 = 0;
+float pressure2 = 0; 
+float pressure3 = 0;  
+float pressure4 = 0;  
+
+if(sensorInputs.get("1/pressure") != null) {
+        //float yoffset = map(mouseY, 0, height, 0, 1);
+        pressure1 = (Float) sensorInputs.get("1/pressure")[0];
+       print("Pressure 1: ");
+       println(pressure1);
+  }   
+  if(sensorInputs.get("2/pressure") != null) {
+        //float yoffset = map(mouseY, 0, height, 0, 1);
+        pressure2 = (Float) sensorInputs.get("2/pressure")[0];
+    print("Pressure 2: ");
+    println(pressure2);
+      
+    }
+  if(sensorInputs.get("3/pressure") != null) {
+        //float yoffset = map(mouseY, 0, height, 0, 1);
+        pressure3 = (Float) sensorInputs.get("3/pressure")[0];
+       print("Pressure 3: ");
+       println(pressure3);
+  }
+    if(sensorInputs.get("4/pressure") != null) {
+        //float yoffset = map(mouseY, 0, height, 0, 1);
+        pressure4 = (Float) sensorInputs.get("4/pressure")[0];
+       print("Pressure 4: ");
+       println(pressure4);
+  }  
+  
+  
+  //Delete that when interaction is coming
+        OscMessage myMessage1;
+        myMessage1 = new OscMessage("/actuator/inflate");
+        myMessage1.add(0.0); 
+        sendToAllActuators(myMessage1);
+  
+  
+  
+  
+  
+}
+
+void deflating_Units(){
+println("Deflation in process!"); 
+        OscMessage myMessage1;
+        myMessage1 = new OscMessage("/actuator/inflate");
+        myMessage1.add(-100.0); 
+        sendToAllActuators(myMessage1);
+}
+
+void stopping_Units(){
+println("Full Stop in process!");  
+        OscMessage myMessage1;
+        myMessage1 = new OscMessage("/actuator/inflate");
+        myMessage1.add(0.0); 
+        sendToAllActuators(myMessage1);
+}
 
 
 
@@ -589,260 +806,13 @@ void plotPressure(){
  
 }
 
-void CouplePressureInflate(){
-  float yoffset = 0;
-  float frequency = 0;
-  
-  float minCutoff = 0.02; // decrease this to get rid of slow speed jitter
-  float beta      = 8.0;  // increase this to get rid of high speed lag
-  
-  // Pass the parameters to the filter
-  myFilter.setMinCutoff(minCutoff);
-  myFilter.setBeta(beta);
-  
-  //check time for actuation only, if it hasn't stopped, then return ignore everything from here on
-  //if it has stopped, then need to send a stop message to all actuators, and start a new timer to wait for them to stop
-  
-    if(onlyActuate){
-      if(millis() - onlyActuateTime >= onlyActuateWait){
-        
-        onlyActuate = false;
-        
-        OscMessage myMessage1;
-        myMessage1 = new OscMessage("/actuator/inflate");
-        myMessage1.add(0.0); 
-        //sendToOneActuator(myMessage1, 1);
-         sendToAllActuators(myMessage1);
-         
-        // println("Wait!");
-         
-         //START A NEW TIMER to wait for the pressure to stabilize
-         waitForPressureTime= millis();
-         waitForPressure = true;
-         return;
-      }
-      else return;
-    }
-  
-  
-  
-  //check for timer to wait for pressure, if it hasn't stopped, then return and ignore everything from here on
-  if(waitForPressure){
-    //println("Waiting for pressure!");
-    return;
-  }
-  
-  
-  if(sensorInputs.get(String.join("/",Integer.toString(firstCouplingSensorId),"pressure")) != null) {
-      //float yoffset = map(mouseY, 0, height, 0, 1);
-      yoffset = (Float) sensorInputs.get(String.join("/",Integer.toString(firstCouplingSensorId),"pressure"))[0];
-  }
-  
-  println("Pressure:", yoffset); 
-   plotPressure();
-  
-    // if(yoffset == 0){
-    //  return;
-    //}
-      
-    frequency = (yoffset - 1000) * 20;
-
-    //Use mouseX mapped from -0.5 to 0.5 as a detune argument //OLD CODE
-    //float detune = map(mouseX, 0, width, -0.5, 0.5);
-    
-    float detune = 1;
-    
-    //if(sensorInputs.get(String.join("/",Integer.toString(firstCouplingSensorId),"y")) != null) {
-    //    //float yoffset = map(mouseY, 0, height, 0, 1);
-    //    detune = (Float) sensorInputs.get(String.join("/",Integer.toString(firstCouplingSensorId),"y"))[0];
-    //}
-        
-    if(detune != last_detune || last_yoffset != yoffset){ //it happens that they are the same often since this function is called more times than the sensor data updates
-      
-      
-      yoffset = myFilter.filterUnitFloat( yoffset );
-      
-      for (int i = 0; i < numSines; i++) {
-        sineFreq[i] = frequency * (i + 1 * detune);
-        // Set the frequencies for all oscillators
-        sineWaves[i].freq(sineFreq[i]);
-      }
-      
-      
-       if(yoffset-last_yoffset > 0){
-        //deflate
-        println("Deflate!", yoffset-last_yoffset);
-        //OscMessage myMessage1;
-        //  myMessage1 = new OscMessage("/actuator/inflate");
-        //  myMessage1.add(-50.0); 
-        //  //sendToOneActuator(myMessage, 1);
-        //   sendToAllActuators(myMessage1);
-           
-        //   //start a timer for actuation
-        //   onlyActuateTime= millis();
-        //   onlyActuate = true;
-
-          
-       }
-       else if(yoffset-last_yoffset < 0){
-         ////inflate
-         
-         println("Inflate!", yoffset-last_yoffset);
-           
-         //  OscMessage myMessage2;
-         //myMessage2 = new OscMessage("/actuator/inflate");
-         //myMessage2.add(50.0); 
-         ////sendToOneActuator(myMessage2, 1);
-         //  sendToAllActuators(myMessage2);
-           
-         //  //start a timer for actuation
-         //  onlyActuateTime= millis();
-         //  onlyActuate = true;
-       
-       }
-      
-      //println("Pressure:", yoffset);
-      //println("Frequency:", frequency);
-      //println("Detune:", detune);
-      //println("Diff_detune:", detune-last_detune);
-      //println("Diff_yoffset:", yoffset-last_yoffset);
-      
-      last_yoffset = yoffset;
-      last_detune = detune;
-    }
-}
-
-float last_yoffset = 0;
-float last_detune = 0;
 
 
-// actuator/[id]/inflate 1 OR actuator/[id]/deflate 1
-void CoupleACCInflate(){
-  float yoffset = 1;
-  float frequency = 1;
-  
-    // Pass the parameters to the filter
-  myFilter.setMinCutoff(minCutoff);
-  myFilter.setBeta(beta);
-  
-  //if(firstCouplingSensorId !=0){
-  //  println(firstCouplingSensorId);
-  //  println(String.join("/",Integer.toString(firstCouplingSensorId),"x"));
-  //}
-  
-  if(sensorInputs.get(String.join("/",Integer.toString(thirdCouplingSensorId),"x")) != null) {
-      //float yoffset = map(mouseY, 0, height, 0, 1);
-      yoffset = (Float) sensorInputs.get(String.join("/",Integer.toString(thirdCouplingSensorId),"x"))[0];
-  }
-  
-  
-  
-  
-    
-    // if(yoffset == 0){
-    //  return;
-    //}
-      
-    frequency = yoffset*100 + 150;
 
-    //Use mouseX mapped from -0.5 to 0.5 as a detune argument //OLD CODE
-    //float detune = map(mouseX, 0, width, -0.5, 0.5);
-    
-    float detune = 0;
-    
-    if(sensorInputs.get(String.join("/",Integer.toString(thirdCouplingSensorId),"y")) != null) {
-        //float yoffset = map(mouseY, 0, height, 0, 1);
-        detune = (Float) sensorInputs.get(String.join("/",Integer.toString(thirdCouplingSensorId),"y"))[0];
-    }
-        
-    if(detune != last_detune || last_yoffset != yoffset){ //it happens that they are the same often since this function is called more times than the sensor data updates
 
-      yoffset = myFilter.filterUnitFloat( yoffset );
-      
-      
-      for (int i = 0; i < numSines; i++) {
-        sineFreq[i] = frequency * (i + 1 * detune);
-        // Set the frequencies for all oscillators
-        sineWaves[i].freq(sineFreq[i]);
-      }
-      
-      println("Frequency:", frequency);
-      println("Detune:", detune);
-      println("Diff_detune:", detune-last_detune);
-      println("Diff_yoffset:", yoffset-last_yoffset);
-      
-      
-      
-      if(yoffset-last_yoffset < 0){
-        //deflate
-        OscMessage myMessage1;
-          myMessage1 = new OscMessage("/actuator/inflate");
-          myMessage1.add(50.0); 
-          //sendToOneActuator(myMessage, 1);
-           sendToAllActuators(myMessage1);
-           
-          //OscMessage myMessage2;
-          //myMessage2 = new OscMessage("/actuator/deflate");
-          //myMessage2.add(1.0); 
-          ////sendToOneActuator(myMessage, 1);
-          // sendToAllActuators(myMessage2);
-          
-       }
-       else{
-         ////inflate
-         //OscMessage myMessage1;
-         //myMessage1 = new OscMessage("/actuator/deflate");
-         //myMessage1.add(0.0); 
-         ////sendToOneActuator(myMessage2, 1);
-         //  sendToAllActuators(myMessage1);
-           
-           OscMessage myMessage2;
-         myMessage2 = new OscMessage("/actuator/inflate");
-         myMessage2.add(-50.0); 
-         //sendToOneActuator(myMessage2, 1);
-           sendToAllActuators(myMessage2);
-       
-       }
-       
-       
-       
-      
-      last_yoffset = yoffset;
-      last_detune = detune;
-    }
-}
 
-void CoupleACCSineWave(){
-  float yoffset = 0;
-  
-    if(sensorInputs.get("1/x") != null) {
-        //float yoffset = map(mouseY, 0, height, 0, 1);
-        yoffset = (Float) sensorInputs.get("1/x")[0];
-    }
-      
-    
-    //Map mouseY logarithmically to 150 - 1150 to create a base frequency range
-    float frequency = yoffset*100 + 150;
-    
-    println("Frequency:", frequency);
-    //Use mouseX mapped from -0.5 to 0.5 as a detune argument
-    
-    //float detune = map(mouseX, 0, width, -0.5, 0.5);
-    float detune = 0;
-    
-    if(sensorInputs.get("1/y") != null) {
-        //float yoffset = map(mouseY, 0, height, 0, 1);
-        detune = (Float) sensorInputs.get("1/y")[0];
-    }
-    
-     println("Detune:", detune);
-    
-    for (int i = 0; i < numSines; i++) { 
-      sineFreq[i] = frequency * (i + 1 * detune);
-      // Set the frequencies for all oscillators
-      sineWaves[i].freq(sineFreq[i]);
-    }
-}
+
+
 
 
 void oscEvent(OscMessage theOscMessage) {
