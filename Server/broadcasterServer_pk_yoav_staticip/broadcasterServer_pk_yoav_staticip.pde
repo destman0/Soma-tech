@@ -184,6 +184,7 @@ int interaction_part = 0;
 long phasedur;
 
 
+
 float[] arrayOfFloats = new float[num];
 
 void setup() {
@@ -248,7 +249,7 @@ void setup() {
                     .setPosition(800,100)
                     .setSize(600,600)
                     .setFont(createFont("arial",38))
-                    .setLineHeight(14)
+                    .setLineHeight(30)
                     .setColor(color(128))
                     .setColorBackground(color(255,100))
                     .setColorForeground(color(255,100));
@@ -721,7 +722,7 @@ println("vafel");
 
     case 0: 
         //println("Inhale");  
-        myMessage1.add(100.0); 
+        myMessage1.add(50.0); 
         sendToAllActuators(myMessage1);
         //myTextarea2.setText("INHALE  "+(interactioncurrenttime-(phase*phasedur+interactionstarttime))/1000);
     break;
@@ -750,21 +751,29 @@ println("vafel");
   myTextarea2.setText("Start time:    "+(interactionstarttime) + " \n\n" +
   "Current time:    "+(interactioncurrenttime)+ " \n\n" +
   "Delta:    "+(interactioncurrenttime - interactionstarttime) + " \n\n" +
-  "Phase:    "+((interactioncurrenttime - interactionstarttime)/phasedur) +" \n\n"
-  ""
+  "Phase:    "+((interactioncurrenttime - interactionstarttime)/phasedur) +" \n\n" +
+  "Cycle:    "+(current_cycle) + " \n\n" +
+  "Duration Chapter:   " +(duration_chapter)+ " \n\n" +
+  "Duration:    " + (phasedur));
   
   
-  );
+
   
   
   
   
   if (((interactioncurrenttime - interactionstarttime)/phasedur)>3){
   interactionstarttime = interactioncurrenttime;
+  current_cycle++;
   }
 
   
   
+}
+
+else{
+duration_chapter++;
+current_cycle=0;
 }
 
 
@@ -780,30 +789,11 @@ interactionstarted=false;
 } 
   
  if (interaction_part==2){
-   
+ myTextarea2.setText("And this is the end of the exercise!");
    
  }
 
-//  myTextarea2.setText("Start time:    "+(interactionstarttime) + " \n\n" +
-//  "Current time:    "+(interactioncurrenttime)+ " \n\n" +
-//  "Delta:    "+(interactioncurrenttime - interactionstarttime) + " \n\n" +
-//  "Phase:    "+((interactioncurrenttime - interactionstarttime)/phasedur));
 
-
-
-
-
-
-
-
-
-
-
-
-  
-  
-  
-  
   
 }
 
