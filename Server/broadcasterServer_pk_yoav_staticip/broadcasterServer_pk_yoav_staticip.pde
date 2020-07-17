@@ -140,6 +140,8 @@ HashMap<String,Object[]> sensorInputs = new HashMap<String,Object[]>();
 
 HashMap<String,Object[]> actuatorInputs = new HashMap<String,Object[]>();
 
+int buttonStatus = 0;
+
 /* listeningPort is the port the server is listening for incoming messages */
 int myListeningPort = 32000;
 /* the broadcast port is the port the clients should listen for incoming messages from the server*/
@@ -177,14 +179,6 @@ int phase;
 
 long phasedur = 3000;
 float[] arrayOfFloats = new float[num];
-
-enum Interaction {
-  Interaction1,
-  Interaction2,
-  Interaction3,
-  DefalteAll,
-  StopAll
-}
 
 void setup() {
   oscP5 = new OscP5(this, myListeningPort);
@@ -426,7 +420,8 @@ void draw() {
   myTextarea1.setText("Pressure in the bit number one:    " + (pressure1) + " \n\n"
       + "Pressure in the bit number two:     " + (pressure2) + " \n\n"
       + "Pressure in the bit number three:   " + (pressure3) + "\n\n"
-      + "Pressure in the bit number four:     " + (pressure4)
+      + "Pressure in the bit number four:    " + (pressure4) + "\n\n"
+      + "Button state:                       " + buttonStatus
   );
 
   endCapture();
@@ -464,7 +459,7 @@ void startCapture() {
     recordPressure = createWriter(
         "pressure-" + dateFormatter.format(startTime) + ".log"
     );
-    recordPressure.println("Time,Pressure1,Pressure2,Pressure3,Pressure4");
+    recordPressure.println("Time,Pressure1,Pressure2,Pressure3,Pressure4,Button");
   }
 }
 
@@ -478,7 +473,6 @@ float readFloat(String from, float defaultValue) {
 }
 
 float[] readInputs() {
-  println("readInputs: ");
   float[] result = new float[4];
   result[0] = readFloat("1/pressure", 0.0);
   result[1] = readFloat("2/pressure", 0.0);
@@ -494,26 +488,25 @@ void adjustPressure(float current, int device) {
   float diff = current - GOAL_PRESSURE;
   if (abs(diff) > GOAL_TOLERANCE) {
     OscMessage message = new OscMessage("/actuator/inflate");
-    float adjustment = diff > 0.0 ? -50.0 : 50.0;
+    float adjustment = diff > 0.0 ? -log(diff): log(-(diff)) * 10;
     message.add(adjustment);
     sendToOneActuator(message, device);
   }
 }
 
 void interaction_One(){
-  println("Interaction one");
+  myTextarea2.setText("Interaction 1");
   startCapture();
 
   float[] readings = readInputs();
-
-  println("Inputs: " + readings.toString());
 
   recordPressure.println(
       dateFormatter.format(new Date()) + ","
           + String.valueOf(readings[0]) + ","
           + String.valueOf(readings[1]) + ","
           + String.valueOf(readings[2]) + ","
-          + String.valueOf(readings[3])
+          + String.valueOf(readings[3]) + ","
+          + String.valueOf(buttonStatus)
   );
 
   for (int index = 0; index < readings.length; index++) {
@@ -835,7 +828,10 @@ void oscEvent(OscMessage theOscMessage) {
    */
    //check if sender is on sensor list (TBD: currently any OSC command is just blindly forwarded to the actuators without checking)
 
-  else if(theOscMessage.addrPattern().contains("/sensor")){
+    else if (theOscMessage.addrPattern().contains("/sensor/buttonstate")) {
+      buttonStatus = ((Float)theOscMessage.arguments()[0]).intValue();
+    }
+    else if(theOscMessage.addrPattern().contains("/sensor")){
 
     //add it to a data structure with all known OSC addresses (hashmap: addrPattern, arguments)
     addSensorValuetoHashMap(theOscMessage);
