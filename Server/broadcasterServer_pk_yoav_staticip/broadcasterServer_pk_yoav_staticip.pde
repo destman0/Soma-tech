@@ -156,7 +156,7 @@ String riotPattern= "/0/";
 
 ControlP5 cp5;
 
-Textarea myTextarea;
+Textarea myTextarea1, myTextarea2;
 
 
 PrintWriter output;
@@ -176,7 +176,7 @@ void setup() {
   wekinator = new NetAddress("127.0.0.1",6448);
   
   // connectActuator("127.0.0.1");
-  size(800,800);
+  size(1600,800);
   smooth();
    
   noStroke();
@@ -219,7 +219,7 @@ void setup() {
      
 
 
-myTextarea = cp5.addTextarea("txt")
+myTextarea1 = cp5.addTextarea("sensorval")
                   .setPosition(100,650)
                   .setSize(600,150)
                   .setFont(createFont("arial",18))
@@ -229,7 +229,15 @@ myTextarea = cp5.addTextarea("txt")
                   .setColorForeground(color(255,100));
                   ;
 
-
+myTextarea2 = cp5.addTextarea("instructions")
+                  .setPosition(800,100)
+                  .setSize(600,600)
+                  .setFont(createFont("arial",38))
+                  .setLineHeight(14)
+                  .setColor(color(128))
+                  .setColorBackground(color(255,100))
+                  .setColorForeground(color(255,100));
+                  ;
 
  
   frameRate(60);
@@ -417,7 +425,7 @@ if(sensorInputs.get("4/pressure") != null) {
         pressure4 = (Float) sensorInputs.get("4/pressure")[0];
 }
 
-myTextarea.setText("Pressure in the bit number one:    "+(pressure1)+" \n\n"
+myTextarea1.setText("Pressure in the bit number one:    "+(pressure1)+" \n\n"
                       +"Pressure in the bit number two:     "+(pressure2)+" \n\n"
                       +"Pressure in the bit number three:   "+(pressure3)+"\n\n"
                       +"Pressure in the bit number four:     "+(pressure4)
@@ -747,6 +755,13 @@ if(sensorInputs.get("1/pressure") != null) {
        print("Pressure 4: ");
        println(pressure4);
   }  
+ 
+  
+  
+  long interstarttime = System.currentTimeMillis();
+  myTextarea2.setText(interstarttime);
+  
+  
   
   
   //Delete that when interaction is coming
