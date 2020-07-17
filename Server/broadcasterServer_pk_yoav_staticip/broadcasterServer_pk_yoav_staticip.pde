@@ -180,8 +180,8 @@ int phase;
 int n_cycles = 3;
 int current_cycle = 0;
 int duration_chapter = 0;
-int interaction_part = 1;
-long phasedur = 3000;
+int interaction_part = 0;
+long phasedur;
 
 
 float[] arrayOfFloats = new float[num];
@@ -647,20 +647,24 @@ sendToOneActuator(myMessage4, 4);
 
 void interaction_Three(){
 
-<<<<<<< HEAD
 if (interaction_part==0){
 
 if(interactionstarted==false){
 interactionstarttime = System.currentTimeMillis();
 interactionstarted = true;
-println("vafel");
+
 }
   
 interactioncurrenttime = System.currentTimeMillis();  
   
 if ((interactioncurrenttime - interactionstarttime)<10000){
+  myTextarea2.setText("The next exercise we are going to do is very much based on a yoga breathing exercise. We are going to inhale, hold our breath, exhale and hold our breath. And we are going to do that on the increasing number counts.");  
   
-  
+}
+
+else{
+interaction_part = 1;
+interactionstarted=false;
 }
   
 }
@@ -669,63 +673,40 @@ if ((interactioncurrenttime - interactionstarttime)<10000){
   
   
 if (interaction_part==1) { 
-=======
->>>>>>> 2eeb4fc0a3749662de20231c2272f0a67134323a
+if (duration_chapter<4){  
+if (current_cycle<n_cycles){
 if(interactionstarted==false){
 interactionstarttime = System.currentTimeMillis();
 interactionstarted = true;
+println("vafel");
 }
-<<<<<<< HEAD
+
   
-  
-/*
-=======
-
-
-
->>>>>>> 2eeb4fc0a3749662de20231c2272f0a67134323a
-float pressure1 = 0;
-float pressure2 = 0; 
-float pressure3 = 0;  
-float pressure4 = 0;  
-
-    if(sensorInputs.get("1/pressure")!=null){
-        //float yoffset = map(mouseY, 0, height, 0, 1);
-        pressure1 = (Float) sensorInputs.get("1/pressure")[0];
-       //print("Pressure 1: ");
-       //println(pressure1);
-  }   
-  if(sensorInputs.get("2/pressure") != null) {
-        //float yoffset = map(mouseY, 0, height, 0, 1);
-        pressure2 = (Float) sensorInputs.get("2/pressure")[0];
-    //print("Pressure 2: ");
-    //println(pressure2);
-      
-    }
-    if(sensorInputs.get("3/pressure")!=null){
-        //float yoffset = map(mouseY, 0, height, 0, 1);
-        pressure3 = (Float) sensorInputs.get("3/pressure")[0];
-       //print("Pressure 3: ");
-       //println(pressure3);
-  }
-    if(sensorInputs.get("4/pressure") != null) {
-        //float yoffset = map(mouseY, 0, height, 0, 1);
-        pressure4 = (Float) sensorInputs.get("4/pressure")[0];
-       //print("Pressure 4: ");
-  //  println(pressure4);
-<<<<<<< HEAD
-  }  
- 
-  */
   
   interactioncurrenttime = System.currentTimeMillis();
-=======
-  }
+
 
 
 
   long interactioncurrenttime = System.currentTimeMillis();
->>>>>>> 2eeb4fc0a3749662de20231c2272f0a67134323a
+
+   switch(duration_chapter)
+   {
+   case 0:
+   phasedur = 3000;
+   break;
+   case 1:
+   phasedur = 5000;
+   break;
+   case 2:
+   phasedur = 7000;
+   break;
+   case 3:
+   phasedur = 10000;
+   break;  
+   }
+
+
 
 
   phase = (int)((interactioncurrenttime - interactionstarttime)/phasedur);
@@ -737,59 +718,43 @@ float pressure4 = 0;
 
   switch (phase)
   {
-<<<<<<< HEAD
+
     case 0: 
         //println("Inhale");  
         myMessage1.add(100.0); 
-=======
-    case 0:
-        println("Inhale");
-        myMessage1.add(100.0);
->>>>>>> 2eeb4fc0a3749662de20231c2272f0a67134323a
         sendToAllActuators(myMessage1);
         //myTextarea2.setText("INHALE  "+(interactioncurrenttime-(phase*phasedur+interactionstarttime))/1000);
     break;
-<<<<<<< HEAD
   case 1: 
         //println("Hold");  
         myMessage1.add(0.0); 
-=======
-  case 1:
-        println("Hold");
-        myMessage1.add(0.0);
->>>>>>> 2eeb4fc0a3749662de20231c2272f0a67134323a
         sendToAllActuators(myMessage1);
         //myTextarea2.setText("HOLD "+(interactioncurrenttime-(phase*phasedur+interactionstarttime))/1000);
     break;
   case 2:
-<<<<<<< HEAD
+
         //println("Exhale");  
         myMessage1.add(-100.0); 
-=======
-        println("Exhale");
-        myMessage1.add(-100.0);
->>>>>>> 2eeb4fc0a3749662de20231c2272f0a67134323a
         sendToAllActuators(myMessage1);
         //myTextarea2.setText("EXHALE  "+(interactioncurrenttime-(phase*phasedur+interactionstarttime))/1000);
     break;
    case 3:
-<<<<<<< HEAD
+
         //println("Hold");  
         myMessage1.add(0.0); 
-=======
-        println("Hold");
-        myMessage1.add(0.0);
->>>>>>> 2eeb4fc0a3749662de20231c2272f0a67134323a
         sendToAllActuators(myMessage1);
         //myTextarea2.setText("HOLD "+(interactioncurrenttime-(phase*phasedur+interactionstarttime))/1000);
     break;
   }
-<<<<<<< HEAD
-  
+ 
   myTextarea2.setText("Start time:    "+(interactionstarttime) + " \n\n" +
   "Current time:    "+(interactioncurrenttime)+ " \n\n" +
   "Delta:    "+(interactioncurrenttime - interactionstarttime) + " \n\n" +
-  "Phase:    "+((interactioncurrenttime - interactionstarttime)/phasedur));
+  "Phase:    "+((interactioncurrenttime - interactionstarttime)/phasedur) +" \n\n"
+  ""
+  
+  
+  );
   
   
   
@@ -797,17 +762,27 @@ float pressure4 = 0;
   if (((interactioncurrenttime - interactionstarttime)/phasedur)>3){
   interactionstarttime = interactioncurrenttime;
   }
+
+  
+  
 }
-  
-  
-  
-  
+
+
+}
+
+else{
+interaction_part = 2;
+interactionstarted=false;  
+}
+
+
+
+} 
   
  if (interaction_part==2){
    
    
  }
-=======
 
 //  myTextarea2.setText("Start time:    "+(interactionstarttime) + " \n\n" +
 //  "Current time:    "+(interactioncurrenttime)+ " \n\n" +
@@ -817,17 +792,13 @@ float pressure4 = 0;
 
 
 
-  if (((interactioncurrenttime - interactionstarttime)/phasedur)>3){
-  interactionstarttime = interactioncurrenttime;
-  }
 
 
 
 
 
 
-  //Delete that when interaction is coming
->>>>>>> 2eeb4fc0a3749662de20231c2272f0a67134323a
+
 
   
   
@@ -837,11 +808,9 @@ float pressure4 = 0;
 }
 
 void deflating_Units(){
-<<<<<<< HEAD
+
 //println("Deflation in process!"); 
-=======
-println("Deflation in process!");
->>>>>>> 2eeb4fc0a3749662de20231c2272f0a67134323a
+
         OscMessage myMessage1;
         myMessage1 = new OscMessage("/actuator/inflate");
         myMessage1.add(-100.0);
@@ -849,11 +818,10 @@ println("Deflation in process!");
 }
 
 void stopping_Units(){
-<<<<<<< HEAD
+
 //println("Full Stop in process!");  
-=======
-println("Full Stop in process!");
->>>>>>> 2eeb4fc0a3749662de20231c2272f0a67134323a
+
+
         OscMessage myMessage1;
         myMessage1 = new OscMessage("/actuator/inflate");
         myMessage1.add(0.0);
@@ -1094,13 +1062,9 @@ void sendToOneActuator(OscMessage theOscMessage, int id){
 }
 
 void sendToAllActuators(OscMessage theOscMessage){
-<<<<<<< HEAD
+
   
     //System.out.println("## Sending to ALL actuators");
-=======
-
-    System.out.println("## Sending to ALL actuators");
->>>>>>> 2eeb4fc0a3749662de20231c2272f0a67134323a
 
     /* create an osc bundle */
   OscBundle myBundle = new OscBundle();
