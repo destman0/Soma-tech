@@ -386,6 +386,7 @@ public void onInteractionChanged(SelectedInteraction newSelect) {
     cp5.getController("Duration_of_Exercise").setVisible(false);
     break;
   case FollowBreathing:
+    initializeFollowBreathing();
     cp5.getController("Number_of_Cycles").setVisible(false);
     cp5.getController("Duration_of_Exercise").setVisible(false);
     break;
@@ -1017,13 +1018,13 @@ void sendToOneActuator(OscMessage theOscMessage, int id){
 
   String addr = getDeviceAddress(id);
   if(addr==null){
-    System.out.println("## ERROR: Actuator with ID "+ id+ " not found");
+    // System.out.println("## ERROR: Actuator with ID "+ id+ " not found");
     return;
   }
 
   NetAddress actuatorNetAddress = ActuatorNetAddressList.get(addr,myBroadcastPort);
   if(actuatorNetAddress==null){
-    System.out.println("## ERROR: Actuator with ID "+ id+ " not found");
+    // System.out.println("## ERROR: Actuator with ID "+ id+ " not found");
     return;
   }
 
