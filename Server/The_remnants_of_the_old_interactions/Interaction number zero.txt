@@ -1,0 +1,123 @@
+void interaction_Two(){
+println("First interaction with thinking");
+float pressure1 = 0;
+float pressure2 = 0;
+float pressure3 = 0;
+float pressure4 = 0;
+
+if(sensorInputs.get("1/pressure") != null) {
+        //float yoffset = map(mouseY, 0, height, 0, 1);
+        pressure1 = (Float) sensorInputs.get("1/pressure")[0];
+       print("Pressure 1: ");
+       println(pressure1);
+  }
+  if(sensorInputs.get("2/pressure") != null) {
+        //float yoffset = map(mouseY, 0, height, 0, 1);
+        pressure2 = (Float) sensorInputs.get("2/pressure")[0];
+    print("Pressure 2: ");
+    println(pressure2);
+
+    }
+  if(sensorInputs.get("3/pressure") != null) {
+        //float yoffset = map(mouseY, 0, height, 0, 1);
+        pressure3 = (Float) sensorInputs.get("3/pressure")[0];
+       print("Pressure 3: ");
+       println(pressure3);
+  }
+    if(sensorInputs.get("4/pressure") != null) {
+        //float yoffset = map(mouseY, 0, height, 0, 1);
+        pressure4 = (Float) sensorInputs.get("4/pressure")[0];
+       print("Pressure 4: ");
+       println(pressure4);
+  }
+//Interation 2. Bit 1 behavior
+OscMessage myMessage1;
+myMessage1 = new OscMessage("/actuator/inflate");
+if ( pressure1 < 1100.0){
+myMessage1.add(50.0);
+println("Bit1 - Autoinflate");
+}
+else{
+myMessage1.add(0.0);
+println("Bit1 - Standby");
+}
+sendToOneActuator(myMessage1, 1);
+
+//Interation 2. Bit 2 behavior
+OscMessage myMessage2;
+myMessage2 = new OscMessage("/actuator/inflate");
+if ( abs (pressure2 - pressure1) < 10.0){
+// print("Bit 2 - Standby");
+}
+else if ((pressure2 > pressure1)&&( abs (pressure2 - pressure1) < 50.0)){
+myMessage2.add(-20.0);
+// print("Bit 2 - Deflate");
+}
+else if ((pressure2 < pressure1)&&( abs (pressure2 - pressure1) < 50.0)){
+myMessage2.add(20.0);
+// print("Bit 2 - Inflate");
+}
+else if ((pressure2 > pressure1)&&( abs (pressure2 - pressure1) >= 50.0)){
+myMessage2.add(-100.0);
+// print("Bit 2 - Deflate");
+}
+else if ((pressure2 < pressure1)&&( abs (pressure2 - pressure1) >= 50.0)){
+myMessage2.add(100.0);
+// print("Bit 2 - Inflate");
+}
+
+sendToOneActuator(myMessage2, 2);
+
+//Interation 2. Bit 3 behavior               
+OscMessage myMessage3;
+myMessage3 = new OscMessage("/actuator/inflate");
+if ( abs (pressure3 - pressure1) < 10.0){
+// print("Bit 3 - Standby");
+}
+else if ((pressure3 > pressure1)&&( abs(pressure3 - pressure1)<50.0)){
+myMessage3.add(-30.0);
+// print("Bit 3 - Deflate");
+}
+else if ((pressure3 < pressure1)&&( abs(pressure3 - pressure1)<50.0)){
+myMessage3.add(30.0);
+// print("Bit 3 - Inflate");
+}
+else if ((pressure3 > pressure1)&&( abs(pressure3 - pressure1)>=50.0)){
+myMessage3.add(-100.0);
+// print("Bit 3 - Deflate");
+}
+else if ((pressure3 < pressure1)&&( abs(pressure3 - pressure1)>=50.0)){
+myMessage3.add(100.0);
+// print("Bit 3 - Inflate");
+}
+
+
+
+
+sendToOneActuator(myMessage3, 3);
+
+
+//Interation 2. Bit 4 behavior               
+OscMessage myMessage4;
+myMessage4 = new OscMessage("/actuator/inflate");
+if ( abs (pressure4 - pressure1) < 10.0){
+  // print("Bit 4 - Standby");
+}
+else if ((pressure4 > pressure1)&&( abs (pressure4 - pressure1) < 50.0)){
+myMessage4.add(-20.0);
+// print("Bit 4 - Deflate");
+}
+else if ((pressure4 < pressure1)&&( abs (pressure4 - pressure1) < 50.0)){
+myMessage4.add(20.0);
+// print("Bit 4 - Inflate");
+}
+else if ((pressure4 > pressure1)&&( abs (pressure4 - pressure1) >= 50.0)){
+myMessage4.add(-100.0);
+// print("Bit 4 - Deflate");
+}
+else if ((pressure4 < pressure1)&&( abs (pressure4 - pressure1) >= 50.0)){
+myMessage4.add(100.0);
+// print("Bit 4 - Inflate");
+}
+sendToOneActuator(myMessage4, 4);
+}

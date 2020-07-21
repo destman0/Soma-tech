@@ -69,6 +69,7 @@ boolean waitForPressure = false;
 int waitForPressureWait = 0;
 
 boolean calibrated = false;
+boolean in_phase = false;
 
 //import org.apache.commons.collections4.*;
 
@@ -177,11 +178,12 @@ long interactionstarttime;
 long interactioncurrenttime;
 boolean interactionstarted = false;
 int phase;
-int n_cycles = 3;
+int n_cycles;
 int current_cycle = 0;
 int duration_chapter = 0;
 int interaction_part = 0;
 long phasedur;
+long slow_breathing_duration;
 
 
 
@@ -206,32 +208,56 @@ void setup() {
      ;
 
 
-  cp5.addButton("Interaction_2")
+  cp5.addButton("Slow_HRV_Breathing")
      .setValue(100)
      .setPosition(100,200)
      .setSize(600,90)
      ;
 
-  cp5.addButton("Interaction_3")
+  cp5.addButton("Square_Breathing")
      .setValue(100)
      .setPosition(100,300)
      .setSize(600,90)
      ;
 
-    cp5.addButton("Deflate_All")
+    cp5.addButton("Deflate_All_Pillows")
      .setValue(100)
      .setPosition(100,400)
      .setSize(600,90)
      .setColorBackground(0xff008888);
      ;
 
-   cp5.addButton("Stop_All")
+   cp5.addButton("Stop_All_Pillows")
      .setValue(100)
      .setPosition(100,500)
      .setSize(600,90)
      //.setColor(cc)
      .setColorBackground(0xff880000);
      ;
+     
+     
+   cp5.addSlider("Number_of_Cycles")
+     .setPosition(20,170)
+     .setSize(50,420)
+     .setRange(1,10)
+     .setValue(3)
+     .setNumberOfTickMarks(10)
+     .setVisible(false)
+     ;
+     
+     
+   cp5.addSlider("Duration_of_Exercise")
+     .setPosition(20,170)
+     .setSize(50,420)
+     .setRange(1,60)
+     .setValue(20)
+     .setNumberOfTickMarks(60)
+     .setVisible(false)
+     ;
+
+  //cp5.getController("vslider").getCaptionLabel().align(ControlP5.RIGHT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
+
+
 
 
 
@@ -248,12 +274,19 @@ void setup() {
   myTextarea2 = cp5.addTextarea("instructions")
                     .setPosition(800,100)
                     .setSize(600,600)
-                    .setFont(createFont("arial",38))
-                    .setLineHeight(30)
+                    .setFont(createFont("arial",50))
+                    .setLineHeight(50)
                     .setColor(color(128))
                     .setColorBackground(color(255,100))
                     .setColorForeground(color(255,100));
                     ;
+
+  cp5.addToggle("in_phase")
+     .setPosition(20,100)
+     .setSize(50,30)
+     .setValue(true)
+     ;
+
 
 
   frameRate(60);
@@ -338,25 +371,37 @@ public void Interaction_1() {
     interact3 = false;
     deflatall = false;
     stopall = false;
+    interaction_part=0;
+    interactionstarted = false;
+    cp5.getController("Number_of_Cycles").setVisible(false);
+    cp5.getController("Duration_of_Exercise").setVisible(false);
 }
-public void Interaction_2() {
+public void Slow_HRV_Breathing() {
     println("Number Two");
     interact1 = false;
     interact2 = true;
     interact3 = false;
     deflatall = false;
     stopall = false;
+    interaction_part=0;
+    interactionstarted = false;
+    cp5.getController("Number_of_Cycles").setVisible(false);
+    cp5.getController("Duration_of_Exercise").setVisible(true);
 }
-public void Interaction_3() {
+public void Square_Breathing() {
     println("Number Three");
     interact1 = false;
     interact2 = false;
     interact3 = true;
     deflatall = false;
     stopall = false;
+    interaction_part=0;
+    interactionstarted = false;
+    cp5.getController("Number_of_Cycles").setVisible(true);
+    cp5.getController("Duration_of_Exercise").setVisible(false);
 }
 
-public void Deflate_All() {
+public void Deflate_All_Pillows() {
     println("Deflating all units");
     interact1 = false;
     interact2 = false;
@@ -365,7 +410,7 @@ public void Deflate_All() {
     stopall = false;
 }
 
-public void Stop_All() {
+public void Stop_All_Pillows() {
     println("Stop");
     interact1 = false;
     interact2 = false;
@@ -373,6 +418,8 @@ public void Stop_All() {
     deflatall = false;
     stopall = true;
 }
+
+
 
 void draw() {
   background(myColor);
@@ -522,131 +569,103 @@ void interaction_One(){
 
 
 void interaction_Two(){
-println("First interaction with thinking");
-float pressure1 = 0;
-float pressure2 = 0;
-float pressure3 = 0;
-float pressure4 = 0;
+// +++++++++++++++++++++++++++++++++++Slow HRV breathing++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+slow_breathing_duration = int(cp5.getController("Duration_of_Exercise").getValue());
+if(interactionstarted==false){
+interactionstarttime = System.currentTimeMillis();
+interactionstarted = true;
 
-if(sensorInputs.get("1/pressure") != null) {
-        //float yoffset = map(mouseY, 0, height, 0, 1);
-        pressure1 = (Float) sensorInputs.get("1/pressure")[0];
-       print("Pressure 1: ");
-       println(pressure1);
-  }
-  if(sensorInputs.get("2/pressure") != null) {
-        //float yoffset = map(mouseY, 0, height, 0, 1);
-        pressure2 = (Float) sensorInputs.get("2/pressure")[0];
-    print("Pressure 2: ");
-    println(pressure2);
+}  
+  
+interactioncurrenttime = System.currentTimeMillis();  
+  
+if ((interactioncurrenttime - interactionstarttime)<10000){
+  myTextarea2.setText("In this interaction we would like you to do your everyday latop activities, while wearing the artefact");  
+  
+}
 
-    }
-  if(sensorInputs.get("3/pressure") != null) {
-        //float yoffset = map(mouseY, 0, height, 0, 1);
-        pressure3 = (Float) sensorInputs.get("3/pressure")[0];
-       print("Pressure 3: ");
-       println(pressure3);
-  }
-    if(sensorInputs.get("4/pressure") != null) {
-        //float yoffset = map(mouseY, 0, height, 0, 1);
-        pressure4 = (Float) sensorInputs.get("4/pressure")[0];
-       print("Pressure 4: ");
-       println(pressure4);
-  }
-//Interation 2. Bit 1 behavior
+else{
+interaction_part = 1;
+interactionstarted=false;
+}
+  
+
+  
+  
+  
+  
+if (interaction_part==1) {   
+if(interactionstarted==false){
+interactionstarttime = System.currentTimeMillis();
+interactionstarted = true;
+}
+
+if ((interactioncurrenttime - interactionstarttime)<(slow_breathing_duration*60000)) {
+interactioncurrenttime = System.currentTimeMillis();
+phasedur = 5450;
+phase = (int)((interactioncurrenttime - interactionstarttime)/phasedur);
+
 OscMessage myMessage1;
 myMessage1 = new OscMessage("/actuator/inflate");
-if ( pressure1 < 1100.0){
-myMessage1.add(50.0);
-println("Bit1 - Autoinflate");
-}
-else{
-myMessage1.add(0.0);
-println("Bit1 - Standby");
-}
-sendToOneActuator(myMessage1, 1);
 
-//Interation 2. Bit 2 behavior
-OscMessage myMessage2;
-myMessage2 = new OscMessage("/actuator/inflate");
-if ( abs (pressure2 - pressure1) < 10.0){
-// print("Bit 2 - Standby");
-}
-else if ((pressure2 > pressure1)&&( abs (pressure2 - pressure1) < 50.0)){
-myMessage2.add(-20.0);
-// print("Bit 2 - Deflate");
-}
-else if ((pressure2 < pressure1)&&( abs (pressure2 - pressure1) < 50.0)){
-myMessage2.add(20.0);
-// print("Bit 2 - Inflate");
-}
-else if ((pressure2 > pressure1)&&( abs (pressure2 - pressure1) >= 50.0)){
-myMessage2.add(-100.0);
-// print("Bit 2 - Deflate");
-}
-else if ((pressure2 < pressure1)&&( abs (pressure2 - pressure1) >= 50.0)){
-myMessage2.add(100.0);
-// print("Bit 2 - Inflate");
+  switch (phase)
+  {
+
+    case 0: 
+        //println("Inhale");  
+        if(in_phase){
+        myMessage1.add(50.0); 
+        }
+        else{
+        myMessage1.add(-100.0); 
+        }        
+        sendToAllActuators(myMessage1);
+        //myTextarea2.setText("INHALE  "+(interactioncurrenttime-(phase*phasedur+interactionstarttime))/1000);
+    break;
+  case 1: 
+        //println("Exhale"); 
+        if (in_phase){
+        myMessage1.add(-100.0); 
+        }
+        else{
+        myMessage1.add(50.0); 
+        }
+        sendToAllActuators(myMessage1);
+        //myTextarea2.setText("HOLD "+(interactioncurrenttime-(phase*phasedur+interactionstarttime))/1000);
+    break;
 }
 
-sendToOneActuator(myMessage2, 2);
+myTextarea2.setText("Start time:    "+(interactionstarttime) + " \n\n" +
+  "Current time:    "+(interactioncurrenttime)+ " \n\n" +
+  "Delta:    "+(interactioncurrenttime - interactionstarttime) + " \n\n" +
+  "Phase:    "+((interactioncurrenttime - interactionstarttime)/phasedur));
 
-//Interation 2. Bit 3 behavior               
-OscMessage myMessage3;
-myMessage3 = new OscMessage("/actuator/inflate");
-if ( abs (pressure3 - pressure1) < 10.0){
-// print("Bit 3 - Standby");
-}
-else if ((pressure3 > pressure1)&&( abs(pressure3 - pressure1)<50.0)){
-myMessage3.add(-30.0);
-// print("Bit 3 - Deflate");
-}
-else if ((pressure3 < pressure1)&&( abs(pressure3 - pressure1)<50.0)){
-myMessage3.add(30.0);
-// print("Bit 3 - Inflate");
-}
-else if ((pressure3 > pressure1)&&( abs(pressure3 - pressure1)>=50.0)){
-myMessage3.add(-100.0);
-// print("Bit 3 - Deflate");
-}
-else if ((pressure3 < pressure1)&&( abs(pressure3 - pressure1)>=50.0)){
-myMessage3.add(100.0);
-// print("Bit 3 - Inflate");
-}
+if (((interactioncurrenttime - interactionstarttime)/phasedur)>1){
+  interactionstarttime = interactioncurrenttime;
+  }
 
 
 
 
-sendToOneActuator(myMessage3, 3);
+} 
+else {
+interaction_part = 2;
+interactionstarted=false;  
+}  
+  
+  
+}
 
 
-//Interation 2. Bit 4 behavior               
-OscMessage myMessage4;
-myMessage4 = new OscMessage("/actuator/inflate");
-if ( abs (pressure4 - pressure1) < 10.0){
-  // print("Bit 4 - Standby");
+if (interaction_part==2){
+myTextarea2.setText("And this is the end of the exercise!");  
+    
 }
-else if ((pressure4 > pressure1)&&( abs (pressure4 - pressure1) < 50.0)){
-myMessage4.add(-20.0);
-// print("Bit 4 - Deflate");
-}
-else if ((pressure4 < pressure1)&&( abs (pressure4 - pressure1) < 50.0)){
-myMessage4.add(20.0);
-// print("Bit 4 - Inflate");
-}
-else if ((pressure4 > pressure1)&&( abs (pressure4 - pressure1) >= 50.0)){
-myMessage4.add(-100.0);
-// print("Bit 4 - Deflate");
-}
-else if ((pressure4 < pressure1)&&( abs (pressure4 - pressure1) >= 50.0)){
-myMessage4.add(100.0);
-// print("Bit 4 - Inflate");
-}
-sendToOneActuator(myMessage4, 4);
 }
 
 void interaction_Three(){
-
+//+++++++++++++++++++++++++++++++++Equal / Square Breathing++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+n_cycles = int(cp5.getController("Number_of_Cycles").getValue());
 if (interaction_part==0){
 
 if(interactionstarted==false){
@@ -678,17 +697,12 @@ if (current_cycle<n_cycles){
 if(interactionstarted==false){
 interactionstarttime = System.currentTimeMillis();
 interactionstarted = true;
-println("vafel");
 }
 
   
   
-  interactioncurrenttime = System.currentTimeMillis();
+interactioncurrenttime = System.currentTimeMillis();
 
-
-
-
-  long interactioncurrenttime = System.currentTimeMillis();
 
    switch(duration_chapter)
    {
@@ -720,32 +734,46 @@ println("vafel");
   {
 
     case 0: 
-        //println("Inhale");  
+        //println("Inhale"); 
+        if(in_phase){
         myMessage1.add(50.0); 
+        }
+        else{
+        myMessage1.add(-100.0);  
+        }  
         sendToAllActuators(myMessage1);
-        //myTextarea2.setText("INHALE  "+(interactioncurrenttime-(phase*phasedur+interactionstarttime))/1000);
+        //myTextarea2.setText("INHALE    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
     break;
   case 1: 
         //println("Hold");  
         myMessage1.add(0.0); 
         sendToAllActuators(myMessage1);
-        //myTextarea2.setText("HOLD "+(interactioncurrenttime-(phase*phasedur+interactionstarttime))/1000);
+        //myTextarea2.setText("HOLD    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
     break;
   case 2:
 
         //println("Exhale");  
+        if(in_phase){
         myMessage1.add(-100.0); 
+        }
+        else {
+        myMessage1.add(50.0);
+        }
         sendToAllActuators(myMessage1);
-        //myTextarea2.setText("EXHALE  "+(interactioncurrenttime-(phase*phasedur+interactionstarttime))/1000);
+        //myTextarea2.setText("EXHALE    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
     break;
    case 3:
 
         //println("Hold");  
         myMessage1.add(0.0); 
         sendToAllActuators(myMessage1);
-        //myTextarea2.setText("HOLD "+(interactioncurrenttime-(phase*phasedur+interactionstarttime))/1000);
+        //myTextarea2.setText("HOLD    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
     break;
   }
+ 
+ 
+ 
+ // That is debugging information, please unqote, if the interaction goes somewhere....
  
   myTextarea2.setText("Start time:    "+(interactionstarttime) + " \n\n" +
   "Current time:    "+(interactioncurrenttime)+ " \n\n" +
