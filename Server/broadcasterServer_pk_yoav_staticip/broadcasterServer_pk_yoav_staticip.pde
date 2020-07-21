@@ -257,6 +257,8 @@ void setup() {
 
   //cp5.getController("vslider").getCaptionLabel().align(ControlP5.RIGHT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
 
+   println("After buttons");
+
 
 
 
@@ -288,6 +290,7 @@ void setup() {
      ;
 
 
+  selection = SelectedInteraction.Nothing;
 
   frameRate(60);
 
@@ -364,59 +367,80 @@ public void EndFile(int theValue) {
   }
 }
 
-public void Interaction_1() {
-    println("Number One");
-    interact1 = true;
-    interact2 = false;
-    interact3 = false;
-    deflatall = false;
-    stopall = false;
-    interaction_part=0;
-    interactionstarted = false;
+enum SelectedInteraction {
+  NotReady,
+  Nothing,
+  FollowBreathing,
+  SlowBreathing,
+  SquareBreathing,
+  DeflateAll,
+  StopAll
+};
+
+SelectedInteraction selection = SelectedInteraction.NotReady;
+
+public void onInteractionChanged(SelectedInteraction newSelect) {
+  switch (newSelect) {
+  case Nothing:
     cp5.getController("Number_of_Cycles").setVisible(false);
     cp5.getController("Duration_of_Exercise").setVisible(false);
-}
-public void Slow_HRV_Breathing() {
-    println("Number Two");
-    interact1 = false;
-    interact2 = true;
-    interact3 = false;
-    deflatall = false;
-    stopall = false;
-    interaction_part=0;
+    break;
+  case FollowBreathing:
+    cp5.getController("Number_of_Cycles").setVisible(false);
+    cp5.getController("Duration_of_Exercise").setVisible(false);
+    break;
+  case SlowBreathing:
+    interaction_part = 0;
     interactionstarted = false;
     cp5.getController("Number_of_Cycles").setVisible(false);
     cp5.getController("Duration_of_Exercise").setVisible(true);
-}
-public void Square_Breathing() {
-    println("Number Three");
-    interact1 = false;
-    interact2 = false;
-    interact3 = true;
-    deflatall = false;
-    stopall = false;
-    interaction_part=0;
+    break;
+  case SquareBreathing:
+    interaction_part = 0;
     interactionstarted = false;
     cp5.getController("Number_of_Cycles").setVisible(true);
     cp5.getController("Duration_of_Exercise").setVisible(false);
+    break;
+  case DeflateAll:
+    cp5.getController("Number_of_Cycles").setVisible(false);
+    cp5.getController("Duration_of_Exercise").setVisible(false);
+    break;
+  case StopAll:
+    cp5.getController("Number_of_Cycles").setVisible(false);
+    cp5.getController("Duration_of_Exercise").setVisible(false);
+    break;
+  default:
+    break;
+  }
+  selection = newSelect;
+}
+
+public void Interaction_1() {
+  if (selection != SelectedInteraction.NotReady && selection != SelectedInteraction.FollowBreathing) {
+    onInteractionChanged(SelectedInteraction.FollowBreathing);
+  }
+}
+public void Slow_HRV_Breathing() {
+  if (selection != SelectedInteraction.NotReady && selection != SelectedInteraction.SlowBreathing) {
+    onInteractionChanged(SelectedInteraction.SlowBreathing);
+  }
+}
+public void Square_Breathing() {
+  if (selection != SelectedInteraction.NotReady && selection != SelectedInteraction.SquareBreathing) {
+    onInteractionChanged(SelectedInteraction.SquareBreathing);
+  }
 }
 
 public void Deflate_All_Pillows() {
-    println("Deflating all units");
-    interact1 = false;
-    interact2 = false;
-    interact3 = false;
-    deflatall = true;
-    stopall = false;
+  if (selection != SelectedInteraction.NotReady && selection != SelectedInteraction.DeflateAll) {
+    onInteractionChanged(SelectedInteraction.DeflateAll);
+  }
 }
 
 public void Stop_All_Pillows() {
-    println("Stop");
-    interact1 = false;
-    interact2 = false;
-    interact3 = false;
-    deflatall = false;
-    stopall = true;
+  if (selection != SelectedInteraction.NotReady && selection != SelectedInteraction.StopAll) {
+    onInteractionChanged(SelectedInteraction.StopAll);
+  }
 }
 
 
@@ -480,18 +504,24 @@ void draw() {
 
   endCapture();
 
-  if (interact1) {
-    //plotPressure();
+  switch (selection) {
+  case FollowBreathing:
     interaction_One();
-  } else if (interact2) {
-    //plotPressure();
+    break;
+  case SlowBreathing:
     interaction_Two();
-  } else if (interact3) {
+    break;
+  case SquareBreathing:
     interaction_Three();
-  } else if (deflatall) {
+    break;
+  case DeflateAll:
     deflating_Units();
-  } else if (stopall) {
+    break;
+  case StopAll:
     stopping_Units();
+    break;
+  default:
+    break;
   }
 }
 
