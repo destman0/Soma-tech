@@ -451,6 +451,7 @@ void draw() {
 PrintWriter recordPressure = null;
 
 SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSS");
+SimpleDateFormat fileNameFormat = new SimpleDateFormat("'pressure'-yyyy-MM-dd-HH-mm-ss.'log'");
 
 void endCapture() {
   if (!interact1 && recordPressure != null) {
@@ -463,9 +464,7 @@ void endCapture() {
 void startCapture() {
   if (interact1 && recordPressure == null) {
     Date startTime = new Date();
-    recordPressure = createWriter(
-        "pressure-" + dateFormatter.format(startTime) + ".log"
-    );
+    recordPressure = createWriter(fileNameFormat.format(startTime));
     recordPressure.println("Time,Pressure1,Pressure2,Pressure3,Pressure4,Button");
   }
 }
