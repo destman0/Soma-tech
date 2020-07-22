@@ -161,6 +161,7 @@ String riotPattern= "/0/";
 ControlP5 cp5;
 
 Textarea myTextarea1, myTextarea2;
+Knob myKnobA;
 
 
 PrintWriter output;
@@ -225,7 +226,7 @@ void setup() {
      .setValue(100)
      .setPosition(100,400)
      .setSize(600,90)
-     .setColorBackground(0xff008888);
+     .setColorBackground(0xff008888)
      ;
 
    cp5.addButton("Stop_All_Pillows")
@@ -233,7 +234,7 @@ void setup() {
      .setPosition(100,500)
      .setSize(600,90)
      //.setColor(cc)
-     .setColorBackground(0xff880000);
+     .setColorBackground(0xff880000)
      ;
      
      
@@ -255,6 +256,26 @@ void setup() {
      .setNumberOfTickMarks(60)
      .setVisible(false)
      ;
+     
+     
+   cp5.addSlider("Inflation_Rate")
+     .setPosition(750,100)
+     .setSize(50,420)
+     .setRange(0,100)
+     .setValue(50)
+     .setNumberOfTickMarks(11)
+     .setVisible(false)
+     ;  
+     
+     
+   cp5.addSlider("Deflation_Rate")
+     .setPosition(850,100)
+     .setSize(50,420)
+     .setRange(0,100)
+     .setValue(100)
+     .setNumberOfTickMarks(11)
+     .setVisible(false)
+     ;
 
   //cp5.getController("vslider").getCaptionLabel().align(ControlP5.RIGHT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
 
@@ -265,7 +286,7 @@ void setup() {
 
 
   myTextarea1 = cp5.addTextarea("sensorval")
-                    .setPosition(100,650)
+                    .setPosition(100,630)
                     .setSize(600,150)
                     .setFont(createFont("arial",18))
                     .setLineHeight(14)
@@ -275,7 +296,7 @@ void setup() {
                     ;
 
   myTextarea2 = cp5.addTextarea("instructions")
-                    .setPosition(800,100)
+                    .setPosition(950,100)
                     .setSize(600,600)
                     .setFont(createFont("arial",50))
                     .setLineHeight(50)
@@ -283,6 +304,20 @@ void setup() {
                     .setColorBackground(color(255,100))
                     .setColorForeground(color(255,100));
                     ;
+                    
+                    
+                    
+  myKnobA = cp5.addKnob("Inhale_or_Exhale_Duration")
+               .setRange(5,7)
+               .setValue(5.45)
+               .setPosition(750,600)
+               .setRadius(70)
+               .setNumberOfTickMarks(40)
+               .setTickMarkLength(4)
+               .snapToTickMarks(true)
+               .setDragDirection(Knob.HORIZONTAL)
+               .setVisible(false)
+               ;                
 
   cp5.addToggle("in_phase")
      .setPosition(20,100)
@@ -385,31 +420,55 @@ public void onInteractionChanged(SelectedInteraction newSelect) {
   case Nothing:
     cp5.getController("Number_of_Cycles").setVisible(false);
     cp5.getController("Duration_of_Exercise").setVisible(false);
+    
+    cp5.getController("Inflation_Rate").setVisible(false);
+    cp5.getController("Deflation_Rate").setVisible(false);
+    cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
     break;
   case FollowBreathing:
     initializeFollowBreathing();
     cp5.getController("Number_of_Cycles").setVisible(false);
     cp5.getController("Duration_of_Exercise").setVisible(false);
+    
+    cp5.getController("Inflation_Rate").setVisible(false);
+    cp5.getController("Deflation_Rate").setVisible(false);
+    cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
     break;
   case SlowBreathing:
     interaction_part = 0;
     interactionstarted = false;
     cp5.getController("Number_of_Cycles").setVisible(false);
     cp5.getController("Duration_of_Exercise").setVisible(true);
+    
+    cp5.getController("Inflation_Rate").setVisible(true);
+    cp5.getController("Deflation_Rate").setVisible(true);
+    cp5.getController("Inhale_or_Exhale_Duration").setVisible(true);
     break;
   case SquareBreathing:
     interaction_part = 0;
     interactionstarted = false;
     cp5.getController("Number_of_Cycles").setVisible(true);
     cp5.getController("Duration_of_Exercise").setVisible(false);
+    
+    cp5.getController("Inflation_Rate").setVisible(true);
+    cp5.getController("Deflation_Rate").setVisible(true);
+    cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
     break;
   case DeflateAll:
     cp5.getController("Number_of_Cycles").setVisible(false);
     cp5.getController("Duration_of_Exercise").setVisible(false);
+    
+    cp5.getController("Inflation_Rate").setVisible(false);
+    cp5.getController("Deflation_Rate").setVisible(false);
+    cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
     break;
   case StopAll:
     cp5.getController("Number_of_Cycles").setVisible(false);
     cp5.getController("Duration_of_Exercise").setVisible(false);
+    
+    cp5.getController("Inflation_Rate").setVisible(false);
+    cp5.getController("Deflation_Rate").setVisible(false);
+    cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
     break;
   default:
     break;
