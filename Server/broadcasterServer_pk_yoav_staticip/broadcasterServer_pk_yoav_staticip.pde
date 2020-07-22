@@ -176,6 +176,7 @@ int num = 50;
 
 long interactionstarttime;
 long interactioncurrenttime;
+long longinteractionstarttime;
 boolean interactionstarted = false;
 int phase;
 int n_cycles;
@@ -201,7 +202,7 @@ void setup() {
   cp5 = new ControlP5(this);
 
 
-  cp5.addButton("Interaction_1")
+  cp5.addButton("Breath_Mirroring")
      .setValue(0)
      .setPosition(100,100)
      .setSize(600,90)
@@ -416,7 +417,7 @@ public void onInteractionChanged(SelectedInteraction newSelect) {
   selection = newSelect;
 }
 
-public void Interaction_1() {
+public void Breath_Mirroring() {
   if (selection != SelectedInteraction.NotReady && selection != SelectedInteraction.FollowBreathing) {
     onInteractionChanged(SelectedInteraction.FollowBreathing);
   }
@@ -531,6 +532,9 @@ void draw() {
 void interaction_Two(){
 // +++++++++++++++++++++++++++++++++++Slow HRV breathing++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 slow_breathing_duration = int(cp5.getController("Duration_of_Exercise").getValue());
+
+if (interaction_part==0){
+
 if(interactionstarted==false){
 interactionstarttime = System.currentTimeMillis();
 interactionstarted = true;
@@ -552,15 +556,16 @@ interactionstarted=false;
 
   
   
-  
+}  
   
 if (interaction_part==1) {   
 if(interactionstarted==false){
 interactionstarttime = System.currentTimeMillis();
+longinteractionstarttime = System.currentTimeMillis();
 interactionstarted = true;
 }
 
-if ((interactioncurrenttime - interactionstarttime)<(slow_breathing_duration*60000)) {
+if ((interactioncurrenttime - longinteractionstarttime)<(slow_breathing_duration*60000)) {
 interactioncurrenttime = System.currentTimeMillis();
 phasedur = 5450;
 phase = (int)((interactioncurrenttime - interactionstarttime)/phasedur);
@@ -595,7 +600,8 @@ myMessage1 = new OscMessage("/actuator/inflate");
     break;
 }
 
-myTextarea2.setText("Start time:    "+(interactionstarttime) + " \n\n" +
+myTextarea2.setText("Long interacton start time:    "+(longinteractionstarttime) + " \n\n" +
+  "Phase start time:    "+(interactionstarttime)+ " \n\n" +
   "Current time:    "+(interactioncurrenttime)+ " \n\n" +
   "Delta:    "+(interactioncurrenttime - interactionstarttime) + " \n\n" +
   "Phase:    "+((interactioncurrenttime - interactionstarttime)/phasedur));
