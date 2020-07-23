@@ -610,7 +610,10 @@ interactioncurrenttime = System.currentTimeMillis();
   
 if ((interactioncurrenttime - interactionstarttime)<10000){
   myTextarea2.setText("In this interaction we would like you to do your everyday latop activities, while wearing the artefact");  
-  
+  OscMessage myMessage1;
+  myMessage1 = new OscMessage("/actuator/inflate");
+  myMessage1.add(0.0);
+  sendToAllActuators(myMessage1);
 }
 
 else{
@@ -690,7 +693,10 @@ interactionstarted=false;
 
 if (interaction_part==2){
 myTextarea2.setText("And this is the end of the exercise!");  
-    
+OscMessage myMessage1;
+myMessage1 = new OscMessage("/actuator/inflate");
+myMessage1.add(0.0);
+sendToAllActuators(myMessage1);    
 }
 }
 
@@ -709,7 +715,10 @@ interactioncurrenttime = System.currentTimeMillis();
   
 if ((interactioncurrenttime - interactionstarttime)<10000){
   myTextarea2.setText("The next exercise we are going to do is very much based on a yoga breathing exercise. We are going to inhale, hold our breath, exhale and hold our breath. And we are going to do that on the increasing number counts.");  
-  
+OscMessage myMessage1;
+myMessage1 = new OscMessage("/actuator/inflate");
+myMessage1.add(0.0);
+sendToAllActuators(myMessage1);  
 }
 
 else{
@@ -848,6 +857,10 @@ interactionstarted=false;
   
  if (interaction_part==2){
  myTextarea2.setText("And this is the end of the exercise!");
+ OscMessage myMessage1;
+ myMessage1 = new OscMessage("/actuator/inflate");
+ myMessage1.add(0.0);
+ sendToAllActuators(myMessage1);
    
  }
 
