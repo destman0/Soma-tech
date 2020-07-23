@@ -204,41 +204,45 @@ void setup() {
   cp5 = new ControlP5(this);
 
 
-  cp5.addButton("Breath_Mirroring")
+  cp5.addButton("Breath_Mirroring_1")
      .setValue(0)
-     .setPosition(100,100)
-     .setSize(600,90)
-     ;
-
-
-  cp5.addButton("Slow_HRV_Breathing")
-     .setValue(100)
-     .setPosition(100,300)
+     .setPosition(100, 50)
      .setSize(600,90)
      ;
 
   cp5.addButton("Square_Breathing")
+    .setValue(100)
+    .setPosition(100, 150)
+    .setSize(600,90)
+    ;
+
+  cp5.addButton("Breath_Mirroring_2")
+    .setValue(0)
+    .setPosition(100,250)
+    .setSize(600,90)
+    ;
+
+  cp5.addButton("Slow_HRV_Breathing")
      .setValue(100)
-     .setPosition(100,200)
+     .setPosition(100, 350)
      .setSize(600,90)
      ;
 
     cp5.addButton("Deflate_All_Pillows")
      .setValue(100)
-     .setPosition(100,400)
+     .setPosition(100,450)
      .setSize(600,90)
      .setColorBackground(0xff008888)
      ;
 
    cp5.addButton("Stop_All_Pillows")
      .setValue(100)
-     .setPosition(100,500)
+     .setPosition(100, 550)
      .setSize(600,90)
      //.setColor(cc)
      .setColorBackground(0xff880000)
      ;
-     
-     
+
    cp5.addSlider("Number_of_Cycles")
      .setPosition(20,170)
      .setSize(50,420)
@@ -287,10 +291,10 @@ void setup() {
 
 
   myTextarea1 = cp5.addTextarea("sensorval")
-                    .setPosition(100,630)
-                    .setSize(600,170)
-                    .setFont(createFont("arial",18))
-                    .setLineHeight(14)
+                    .setPosition(100, 650)
+                    .setSize(600, 110)
+                    .setFont(createFont("arial",12))
+                    .setLineHeight(11)
                     .setColor(color(128))
                     .setColorBackground(color(255,100))
                     .setColorForeground(color(255,100));
@@ -407,7 +411,8 @@ public void EndFile(int theValue) {
 enum SelectedInteraction {
   NotReady,
   Nothing,
-  FollowBreathing,
+  FollowBreathing1,
+  FollowBreathing2,
   SlowBreathing,
   SquareBreathing,
   DeflateAll,
@@ -417,6 +422,7 @@ enum SelectedInteraction {
 SelectedInteraction selection = SelectedInteraction.NotReady;
 
 public void onInteractionChanged(SelectedInteraction newSelect) {
+  if (instructionsAudio != null) instructionsAudio.stop();
   switch (newSelect) {
   case Nothing:
     cp5.getController("Number_of_Cycles").setVisible(false);
@@ -426,7 +432,9 @@ public void onInteractionChanged(SelectedInteraction newSelect) {
     cp5.getController("Deflation_Rate").setVisible(false);
     cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
     break;
-  case FollowBreathing:
+  case FollowBreathing1:
+    // Fall through to FollowBreathing2
+  case FollowBreathing2:
     initializeFollowBreathing();
     cp5.getController("Number_of_Cycles").setVisible(false);
     cp5.getController("Duration_of_Exercise").setVisible(false);
@@ -477,11 +485,22 @@ public void onInteractionChanged(SelectedInteraction newSelect) {
   selection = newSelect;
 }
 
-public void Breath_Mirroring() {
-  if (selection != SelectedInteraction.NotReady && selection != SelectedInteraction.FollowBreathing) {
-    onInteractionChanged(SelectedInteraction.FollowBreathing);
+public void Breath_Mirroring_1() {
+  if (selection != SelectedInteraction.NotReady && selection != SelectedInteraction.FollowBreathing1) {
+    instructionsAudioPath =  "Breathing-1-instructions.mp3";
+    exerciseAudioPath =  "Breathing-1-exercise.mp3";
+    onInteractionChanged(SelectedInteraction.FollowBreathing1);
   }
 }
+
+public void Breath_Mirroring_2() {
+  if (selection != SelectedInteraction.NotReady && selection != SelectedInteraction.FollowBreathing2) {
+    instructionsAudioPath =  "Breathing-2-instructions.mp3";
+    exerciseAudioPath =  "Breathing-2-exercise.mp3";
+    onInteractionChanged(SelectedInteraction.FollowBreathing2);
+  }
+}
+
 public void Slow_HRV_Breathing() {
   if (selection != SelectedInteraction.NotReady && selection != SelectedInteraction.SlowBreathing) {
     onInteractionChanged(SelectedInteraction.SlowBreathing);
@@ -572,7 +591,10 @@ void draw() {
   endCapture();
 
   switch (selection) {
-  case FollowBreathing:
+  case FollowBreathing1:
+    interaction_One();
+    break;
+  case FollowBreathing2:
     interaction_One();
     break;
   case SlowBreathing:
@@ -882,6 +904,7 @@ void stopping_Units(){
 
 //println("Full Stop in process!");  
 
+  myTextarea2.setText("Stop!");
 
         OscMessage myMessage1;
         myMessage1 = new OscMessage("/actuator/inflate");
