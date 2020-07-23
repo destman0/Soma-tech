@@ -112,6 +112,7 @@ HashMap<String, Device> DeviceIPs = new HashMap<String, Device>();
   DeviceIPs.put("192.168.0.12", new Device(2, DeviceRole.Both));
   DeviceIPs.put("192.168.0.13", new Device(3, DeviceRole.Both));
   DeviceIPs.put("192.168.0.14", new Device(4, DeviceRole.Both));
+  DeviceIPs.put("192.168.0.15", new Device(5, DeviceRole.Both));
 }}
 
 Map<String, Device> getActuators() {
@@ -212,13 +213,13 @@ void setup() {
 
   cp5.addButton("Slow_HRV_Breathing")
      .setValue(100)
-     .setPosition(100,200)
+     .setPosition(100,300)
      .setSize(600,90)
      ;
 
   cp5.addButton("Square_Breathing")
      .setValue(100)
-     .setPosition(100,300)
+     .setPosition(100,200)
      .setSize(600,90)
      ;
 
@@ -262,7 +263,7 @@ void setup() {
      .setPosition(750,100)
      .setSize(50,420)
      .setRange(0,100)
-     .setValue(50)
+     .setValue(80)
      .setNumberOfTickMarks(11)
      .setVisible(false)
      ;  
@@ -272,7 +273,7 @@ void setup() {
      .setPosition(850,100)
      .setSize(50,420)
      .setRange(0,100)
-     .setValue(100)
+     .setValue(80)
      .setNumberOfTickMarks(11)
      .setVisible(false)
      ;
@@ -287,7 +288,7 @@ void setup() {
 
   myTextarea1 = cp5.addTextarea("sensorval")
                     .setPosition(100,630)
-                    .setSize(600,150)
+                    .setSize(600,170)
                     .setFont(createFont("arial",18))
                     .setLineHeight(14)
                     .setColor(color(128))
@@ -542,6 +543,7 @@ void draw() {
   float pressure2 = 0;
   float pressure3 = 0;
   float pressure4 = 0;
+  float pressure5 = 0;
 
   if (sensorInputs.get("1/pressure") != null) {
     pressure1 = (Float) sensorInputs.get("1/pressure")[0];
@@ -555,11 +557,15 @@ void draw() {
   if (sensorInputs.get("4/pressure") != null) {
     pressure4 = (Float) sensorInputs.get("4/pressure")[0];
   }
+    if (sensorInputs.get("5/pressure") != null) {
+    pressure5 = (Float) sensorInputs.get("5/pressure")[0];
+  }
 
   myTextarea1.setText("Pressure in the bit number one:    " + (pressure1) + " \n\n"
       + "Pressure in the bit number two:     " + (pressure2) + " \n\n"
       + "Pressure in the bit number three:   " + (pressure3) + "\n\n"
       + "Pressure in the bit number four:    " + (pressure4) + "\n\n"
+      + "Pressure in the bit number five:    " + (pressure5) + "\n\n"
       + "Button state:                       " + buttonStatus
   );
 
@@ -626,7 +632,7 @@ interactionstarted = true;
 
 if ((interactioncurrenttime - longinteractionstarttime)<(slow_breathing_duration*60000)) {
 interactioncurrenttime = System.currentTimeMillis();
-phasedur = 5450;
+phasedur = int(cp5.getController("Inhale_or_Exhale_Duration").getValue()*1000);
 phase = (int)((interactioncurrenttime - interactionstarttime)/phasedur);
 
 OscMessage myMessage1;
@@ -638,10 +644,10 @@ myMessage1 = new OscMessage("/actuator/inflate");
     case 0: 
         //println("Inhale");  
         if(in_phase){
-        myMessage1.add(50.0); 
+        myMessage1.add(cp5.getController("Inflation_Rate").getValue()); 
         }
         else{
-        myMessage1.add(-100.0); 
+        myMessage1.add(-(cp5.getController("Deflation_Rate").getValue())); 
         }        
         sendToAllActuators(myMessage1);
         //myTextarea2.setText("INHALE  "+(interactioncurrenttime-(phase*phasedur+interactionstarttime))/1000);
@@ -649,10 +655,10 @@ myMessage1 = new OscMessage("/actuator/inflate");
   case 1: 
         //println("Exhale"); 
         if (in_phase){
-        myMessage1.add(-100.0); 
+        myMessage1.add(-(cp5.getController("Deflation_Rate").getValue())); 
         }
         else{
-        myMessage1.add(50.0); 
+        myMessage1.add(cp5.getController("Inflation_Rate").getValue()); 
         }
         sendToAllActuators(myMessage1);
         //myTextarea2.setText("HOLD "+(interactioncurrenttime-(phase*phasedur+interactionstarttime))/1000);
@@ -761,10 +767,10 @@ interactioncurrenttime = System.currentTimeMillis();
     case 0: 
         //println("Inhale"); 
         if(in_phase){
-        myMessage1.add(50.0); 
+        myMessage1.add((cp5.getController("Inflation_Rate").getValue())); 
         }
         else{
-        myMessage1.add(-100.0);  
+        myMessage1.add(-(cp5.getController("Deflation_Rate").getValue()));  
         }  
         sendToAllActuators(myMessage1);
         //myTextarea2.setText("INHALE    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
@@ -779,10 +785,10 @@ interactioncurrenttime = System.currentTimeMillis();
 
         //println("Exhale");  
         if(in_phase){
-        myMessage1.add(-100.0); 
+        myMessage1.add(-(cp5.getController("Deflation_Rate").getValue())); 
         }
         else {
-        myMessage1.add(50.0);
+        myMessage1.add(cp5.getController("Inflation_Rate").getValue());
         }
         sendToAllActuators(myMessage1);
         //myTextarea2.setText("EXHALE    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
