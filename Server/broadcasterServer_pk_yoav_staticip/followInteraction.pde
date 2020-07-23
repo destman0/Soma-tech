@@ -1,10 +1,15 @@
 PrintWriter recordPressure=null;
 
+SoundFile instructionsAudio;
+
+String instructionsAudioPath =  "Breathing-1-instructions.mp3";
+String exerciseAudioPath =  "Breathing-1-exercise.mp3";
+
 SimpleDateFormat dateFormatter=new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSS");
 SimpleDateFormat fileNameFormat=new SimpleDateFormat("'pressure'-yyyy-MM-dd-HH-mm-ss.'log'");
 
-float GOAL_PRESSURE = 1300;
-float GOAL_TOLERANCE = 10;
+float GOAL_PRESSURE = 1250;
+float GOAL_TOLERANCE = 5;
 long MEASUREMENT_PHASE_TIME = 1 * 60 * 1000;
 
 void adjustPressure(float current, float goal, int device){
@@ -20,6 +25,7 @@ void adjustPressure(float current, float goal, int device){
 enum FollowInteractionState {
   Stopped,
   Setup,
+  StartAudio,
   Measure,
   Phase,
   AntiPhase,
@@ -107,32 +113,38 @@ void interaction_One(){
   switch (followInteractionState) {
   case Stopped:
     myTextarea2.setText("Follow Breathing Interaction");
+    instructionsAudio = new SoundFile(this, instructionsAudioPath);
+    instructionsAudio.play();
     followInteractionState = FollowInteractionState.Setup;
     break;
   case Setup:
     myTextarea2.setText("Follow Breathing Interaction: Inflating");
     boolean done = adjustPressureTo(GOAL_PRESSURE, in);
-    if (done) {
+    if (done && !instructionsAudio.isPlaying()) {
       setupFollowInteraction();
-      followInteractionState = FollowInteractionState.Measure;
+      followInteractionState = FollowInteractionState.StartAudio;
     }
+    break;
+  case StartAudio:
+    instructionsAudio = new SoundFile(this, exerciseAudioPath);
+    instructionsAudio.play();
+    followInteractionState = FollowInteractionState.Measure;
     break;
   case Measure:
     stopAllPillows();
     long elapsedTime = in.timeMs - startTimeMs;
     long remainingTime = MEASUREMENT_PHASE_TIME - elapsedTime;
-    myTextarea2.setText("Follow Breathing Interaction: Measurement Phase\n"
-                        + (remainingTime / (1000)) + " seconds remaining.");
-    if (elapsedTime > MEASUREMENT_PHASE_TIME) {
+    myTextarea2.setText("Follow Breathing Interaction: Follow the instructions\n");
+    if (instructionsAudio.isPlaying()) {
+      measurements.add(in);
+    } else {
       followInteractionState = FollowInteractionState.Phase;
       replayValues = calculateReplayValues(measurements);
       replayIndex = 0;
-    } else {
-      measurements.add(in);
     }
     break;
   case Phase:
-    myTextarea2.setText("Follow Breathing Interaction: Mirroring Phase");
+    myTextarea2.setText("Follow Breathing Interaction:\n Breathe naturally, feel your breath being replayed.");
     if (replayIndex < replayValues.size()) {
       println("Reply index=" + replayIndex + "Values: " + replayValues.get(replayIndex));
       sendOutputValues(replayValues.get(replayIndex));
