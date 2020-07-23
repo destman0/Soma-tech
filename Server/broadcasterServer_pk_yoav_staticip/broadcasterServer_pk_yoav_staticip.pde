@@ -773,13 +773,13 @@ interactioncurrenttime = System.currentTimeMillis();
         myMessage1.add(-(cp5.getController("Deflation_Rate").getValue()));  
         }  
         sendToAllActuators(myMessage1);
-        //myTextarea2.setText("INHALE    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
+        myTextarea2.setText("INHALE    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
     break;
   case 1: 
         //println("Hold");  
         myMessage1.add(0.0); 
         sendToAllActuators(myMessage1);
-        //myTextarea2.setText("HOLD    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
+        myTextarea2.setText("HOLD    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
     break;
   case 2:
 
@@ -791,21 +791,21 @@ interactioncurrenttime = System.currentTimeMillis();
         myMessage1.add(cp5.getController("Inflation_Rate").getValue());
         }
         sendToAllActuators(myMessage1);
-        //myTextarea2.setText("EXHALE    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
+        myTextarea2.setText("EXHALE    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
     break;
    case 3:
 
         //println("Hold");  
         myMessage1.add(0.0); 
         sendToAllActuators(myMessage1);
-        //myTextarea2.setText("HOLD    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
+        myTextarea2.setText("HOLD    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
     break;
   }
  
  
  
  // That is debugging information, please unqote, if the interaction goes somewhere....
- 
+ /*
   myTextarea2.setText("Start time:    "+(interactionstarttime) + " \n\n" +
   "Current time:    "+(interactioncurrenttime)+ " \n\n" +
   "Delta:    "+(interactioncurrenttime - interactionstarttime) + " \n\n" +
@@ -813,7 +813,7 @@ interactioncurrenttime = System.currentTimeMillis();
   "Cycle:    "+(current_cycle) + " \n\n" +
   "Duration Chapter:   " +(duration_chapter)+ " \n\n" +
   "Duration:    " + (phasedur));
-  
+  */
   
 
   
