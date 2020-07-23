@@ -263,7 +263,7 @@ void setup() {
      .setPosition(750,100)
      .setSize(50,420)
      .setRange(0,100)
-     .setValue(80)
+     .setValue(50)
      .setNumberOfTickMarks(11)
      .setVisible(false)
      ;  
@@ -273,7 +273,7 @@ void setup() {
      .setPosition(850,100)
      .setSize(50,420)
      .setRange(0,100)
-     .setValue(80)
+     .setValue(100)
      .setNumberOfTickMarks(11)
      .setVisible(false)
      ;
