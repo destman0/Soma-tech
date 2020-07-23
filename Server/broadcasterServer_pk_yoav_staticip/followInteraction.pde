@@ -144,6 +144,7 @@ void interaction_One(){
   case AntiPhase:
     break;
   case Completed:
+    stopAllPillows();
     myTextarea2.setText("Done!");
   }
 }
@@ -210,11 +211,14 @@ ArrayList<Output> calculateReplayValues(ArrayList<Measurement> inputs) {
                           diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure5, c.pressure5))
     ));
   }
+  result.addAll(result);
   return result;
 }
 
 float diffToMotor(float diffValue) {
-  return clip(-diffValue * DIFF_TO_MOTOR_RATIO + 10, -50, 50);
+  return diffValue > 0
+    ? clip(diffValue * DIFF_TO_MOTOR_RATIO + 10, 10, 60)
+    : clip(diffValue * DIFF_TO_MOTOR_RATIO, -40, -5);
 }
 
 Output getPressures(Measurement m) {
@@ -309,7 +313,7 @@ Measurement readInputs() {
                          readFloat("2/pressure", 0.0),
                          readFloat("3/pressure", 0.0),
                          readFloat("4/pressure", 0.0),
-                         0.0,
+                         readFloat("5/pressure", 0.0),
                          buttonStatus
                          );
 }
