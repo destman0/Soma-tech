@@ -9,14 +9,14 @@ SimpleDateFormat dateFormatter=new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSS"
 SimpleDateFormat fileNameFormat=new SimpleDateFormat("'pressure'-yyyy-MM-dd-HH-mm-ss.'log'");
 
 float GOAL_PRESSURE = 1250;
-float GOAL_TOLERANCE = 5;
+float GOAL_TOLERANCE = 10;
 long MEASUREMENT_PHASE_TIME = 1 * 60 * 1000;
 
 void adjustPressure(float current, float goal, int device){
   OscMessage message = new OscMessage("/actuator/inflate");
   float diff = current - goal;
-  float adjustment = (abs(diff) > GOAL_TOLERANCE)
-    ? diff > 0.0 ? -5 - (log(diff) * 5) : 5 + (log(-(diff)) * 10)
+  float adjustment = (abs(diff) > GOAL_TOLERANCE / 2.0)
+    ? diff > 0.0 ? -5 - (log(diff) * 5) : 5 + (log(-(diff)) * 20)
     : 0.0;
   message.add(adjustment);
   sendToOneActuator(message,device);
