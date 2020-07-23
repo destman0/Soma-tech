@@ -16,7 +16,7 @@ void adjustPressure(float current, float goal, int device){
   OscMessage message = new OscMessage("/actuator/inflate");
   float diff = current - goal;
   float adjustment = (abs(diff) > GOAL_TOLERANCE / 2.0)
-    ? diff > 0.0 ? -5 - (log(diff) * 5) : 5 + (log(-(diff)) * 20)
+    ? diff > 0.0 ? -5 - (log(diff) * 5) : 5 + (log(-(diff)) * 10)
     : 0.0;
   message.add(adjustment);
   sendToOneActuator(message,device);
