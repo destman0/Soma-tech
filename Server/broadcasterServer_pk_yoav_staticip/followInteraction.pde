@@ -5,7 +5,7 @@ SimpleDateFormat fileNameFormat=new SimpleDateFormat("'pressure'-yyyy-MM-dd-HH-m
 
 float GOAL_PRESSURE = 1300;
 float GOAL_TOLERANCE = 10;
-long MEASUREMENT_PHASE_TIME = 1 * 30 * 1000;
+long MEASUREMENT_PHASE_TIME = 1 * 60 * 1000;
 
 void adjustPressure(float current, float goal, int device){
   OscMessage message = new OscMessage("/actuator/inflate");
@@ -85,6 +85,15 @@ class Output {
       + "pressure4=" + String.valueOf(pressure4) + ","
       + "pressure5=" + String.valueOf(pressure5)
       + ")";
+  }
+
+  public Output sum(Output o) {
+    return new Output(this.pressure1 + o.pressure1,
+                      this.pressure2 + o.pressure2,
+                      this.pressure3 + o.pressure3,
+                      this.pressure4 + o.pressure4,
+                      this.pressure5 + o.pressure5
+                      );
   }
 }
 
@@ -183,20 +192,76 @@ void sendTo(int device, float value) {
   sendToOneActuator(message,device);
 }
 
+float DIFF_TO_MOTOR_RATIO = 20000;
+
 ArrayList<Output> calculateReplayValues(ArrayList<Measurement> inputs) {
+  List<Output> smoothed = slidingAvg(toPressures(inputs), 10);
   ArrayList<Output> result = new ArrayList(inputs.size());
-  for (int i = 1; i < inputs.size(); i++) {
-    Measurement p = inputs.get(i - 1);
-    Measurement c = inputs.get(i);
+  for (int i = 1; i < smoothed.size(); i++) {
+    Measurement pm = inputs.get(i - 1);
+    Measurement cm = inputs.get(i);
+    Output p = smoothed.get(i - 1);
+    Output c = smoothed.get(i);
     result.add(new Output(
-                          clip(diff(p.timeMs, c.timeMs, p.pressure1, c.pressure1) * 200, -50, 50),
-                          clip(diff(p.timeMs, c.timeMs, p.pressure2, c.pressure2) * 200, -50, 50),
-                          clip(diff(p.timeMs, c.timeMs, p.pressure3, c.pressure3) * 200, -50, 50),
-                          clip(diff(p.timeMs, c.timeMs, p.pressure4, c.pressure4) * 200, -50, 50),
-                          clip(diff(p.timeMs, c.timeMs, p.pressure5, c.pressure5) * 200, -50, 50)
+                          diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure1, c.pressure1)),
+                          diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure2, c.pressure2)),
+                          diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure3, c.pressure3)),
+                          diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure4, c.pressure4)),
+                          diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure5, c.pressure5))
     ));
   }
   return result;
+}
+
+float diffToMotor(float diffValue) {
+  return clip(-diffValue * DIFF_TO_MOTOR_RATIO + 10, -50, 50);
+}
+
+Output getPressures(Measurement m) {
+  return new Output(m.pressure1, m.pressure2, m.pressure3, m.pressure4, m.pressure5);
+}
+
+<T> List<List<T>> sliding(List<T> in, int size) {
+  ArrayList<List<T>> res = new ArrayList(in.size());
+  for (int i = 0; i < in.size(); i++) {
+    res.add(in.subList(max(0, i - size), min(i + size, in.size())));
+  }
+  return res;
+}
+
+List<Output> toPressures(List<Measurement> ms) {
+  ArrayList<Output> res = new ArrayList(ms.size());
+  for (Measurement m : ms) {
+    res.add(new Output(m.pressure1,
+                       m.pressure2,
+                       m.pressure3,
+                       m.pressure4,
+                       m.pressure5
+                       ));
+  }
+  return res;
+}
+
+Output averages(List<Output> xs) {
+  Output res = new Output(0, 0, 0, 0, 0);
+  for (Output x : xs) {
+    res = res.sum(x);
+  }
+  res.pressure1 /= xs.size();
+  res.pressure2 /= xs.size();
+  res.pressure3 /= xs.size();
+  res.pressure4 /= xs.size();
+  res.pressure5 /= xs.size();
+  return res;
+}
+
+List<Output> slidingAvg(List<Output> xs, int windowSize) {
+  List<List<Output>> windowed = sliding(xs, windowSize);
+  ArrayList<Output> res = new ArrayList<Output>(xs.size());
+  for (List<Output> window : windowed) {
+    res.add(averages(window));
+  }
+  return res;
 }
 
 float diff(long x1, long x2, float y1, float y2) {
