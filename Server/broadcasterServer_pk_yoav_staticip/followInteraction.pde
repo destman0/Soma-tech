@@ -9,7 +9,7 @@ SimpleDateFormat dateFormatter=new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSS"
 SimpleDateFormat fileNameFormat=new SimpleDateFormat("'pressure'-yyyy-MM-dd-HH-mm-ss.'log'");
 
 float GOAL_PRESSURE = 1210;
-float GOAL_TOLERANCE = 10;
+float GOAL_TOLERANCE = 20;
 long MEASUREMENT_PHASE_TIME = 1 * 60 * 1000;
 
 enum FollowInteractionState {
@@ -178,9 +178,9 @@ boolean adjustPressureTo(float goal, Measurement values) {
 void adjustPressure(float current, float goal, int device){
   float diff = current - goal;
   float a = -0.007;
-  float b = -0.6;
-  float c = 2.0;
-  float adjustment = (current < goal || current > goal + GOAL_TOLERANCE)
+  float b = -1.2;
+  float c = 5.0;
+  float adjustment = (current < goal + (GOAL_TOLERANCE / 4.0) || current > goal + GOAL_TOLERANCE)
     ? (a * abs(diff) * diff) + (b * diff) + c
     : 0.0;
   sendTo(device, adjustment);
