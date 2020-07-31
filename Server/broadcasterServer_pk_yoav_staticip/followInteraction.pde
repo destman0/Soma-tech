@@ -8,19 +8,9 @@ String exerciseAudioPath =  "Breathing-1-exercise.mp3";
 SimpleDateFormat dateFormatter=new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSS");
 SimpleDateFormat fileNameFormat=new SimpleDateFormat("'pressure'-yyyy-MM-dd-HH-mm-ss.'log'");
 
-float GOAL_PRESSURE = 1250;
+float GOAL_PRESSURE = 1210;
 float GOAL_TOLERANCE = 10;
 long MEASUREMENT_PHASE_TIME = 1 * 60 * 1000;
-
-void adjustPressure(float current, float goal, int device){
-  OscMessage message = new OscMessage("/actuator/inflate");
-  float diff = current - goal;
-  float adjustment = (abs(diff) > GOAL_TOLERANCE / 2.0)
-    ? diff > 0.0 ? -5 - (log(diff) * 5) : 5 + (log(-(diff)) * 10)
-    : 0.0;
-  message.add(adjustment);
-  sendToOneActuator(message,device);
-}
 
 enum FollowInteractionState {
   Stopped,
@@ -185,6 +175,17 @@ boolean adjustPressureTo(float goal, Measurement values) {
           );
 }
 
+void adjustPressure(float current, float goal, int device){
+  float diff = current - goal;
+  float a = -0.007;
+  float b = -0.6;
+  float c = 2.0;
+  float adjustment = (current < goal || current > goal + GOAL_TOLERANCE)
+    ? (a * abs(diff) * diff) + (b * diff) + c
+    : 0.0;
+  sendTo(device, adjustment);
+}
+
 void stopAllPillows() {
   OscMessage m = new OscMessage("/actuator/inflate");
   m.add(0.0);
@@ -201,8 +202,8 @@ void sendOutputValues(Output out) {
 
 void sendTo(int device, float value) {
   OscMessage message = new OscMessage("/actuator/inflate");
-  message.add(value);
-  sendToOneActuator(message,device);
+  message.add(clip(value, -100, 100));
+  sendToOneActuator(message, device);
 }
 
 float DIFF_TO_MOTOR_RATIO = 20000;
