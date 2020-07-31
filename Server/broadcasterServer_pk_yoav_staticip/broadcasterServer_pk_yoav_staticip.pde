@@ -174,23 +174,16 @@ float n,n1;
 
 int framefile= 0;
 
+
 int num = 50;
-
-long interactionstarttime;
-long interactioncurrenttime;
-long longinteractionstarttime;
-boolean interactionstarted = false;
-int phase;
-int n_cycles;
-int current_cycle = 0;
-int duration_chapter = 0;
-int interaction_part = 0;
-long phasedur;
-long slow_breathing_duration;
-
-
-
 float[] arrayOfFloats = new float[num];
+
+Interaction breathMirroring1;
+Interaction breathMirroring2;
+Interaction hrvBreathing;
+Interaction squareBreathing ;
+Interaction deflateAll;
+Interaction stopAll;
 
 void setup() {
   oscP5 = new OscP5(this, myListeningPort);
@@ -282,14 +275,6 @@ void setup() {
      .setVisible(false)
      ;
 
-  //cp5.getController("vslider").getCaptionLabel().align(ControlP5.RIGHT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
-
-   println("After buttons");
-
-
-
-
-
   myTextarea1 = cp5.addTextarea("sensorval")
                     .setPosition(100, 650)
                     .setSize(600, 110)
@@ -310,8 +295,6 @@ void setup() {
                     .setColorForeground(color(255,100));
                     ;
                     
-                    
-                    
   myKnobA = cp5.addKnob("Inhale_or_Exhale_Duration")
                .setRange(5,7)
                .setValue(5.45)
@@ -329,9 +312,6 @@ void setup() {
      .setSize(50,30)
      .setValue(true)
      ;
-
-
-  selection = SelectedInteraction.Nothing;
 
   frameRate(60);
 
@@ -359,597 +339,142 @@ void setup() {
   for (Map.Entry<String, Device> actuator : getActuators().entrySet()) {
     ActuatorNetAddressList.add(new NetAddress(actuator.getKey(), myBroadcastPort));
   }
+  breathMirroring1 = new BreathMirroring(new SoundFile(this, "Breathing-1-instructions.mp3"),
+                                         new SoundFile(this, "Breathing-1-exercise.mp3"));
+
+  breathMirroring2 = new BreathMirroring(new SoundFile(this, "Breathing-2-instructions.mp3"),
+                                         new SoundFile(this, "Breathing-2-exercise.mp3"));
+
+  hrvBreathing = new HrvBreathing();
+
+  squareBreathing = new SquareBreathing();
+
+  deflateAll = new DeflateAll();
+
+  stopAll = new StopAll();
 }
 
-// function Start will receive changes from 
-// controller with name Start
-public void Write(int theValue) {
-  //checks if there are sensors or actuators
-  if(!sensorInputs.isEmpty() || !actuatorInputs.isEmpty()){
+Measurement currentMeasurement;
 
-    String filename= "output"+System.currentTimeMillis()+".txt";
 
-    output = createWriter(filename);
+Interaction currentInteraction = null;
 
-    output.print("frame"+"\t");
-
-    //writes headers of files
-    Set<String> keys = sensorInputs.keySet();
-    for(String key: keys){
-        output.print(key+"\t"); // Write the header to the file
-        //text(key+"\t", 10, 10, 70, 80);  // Text wraps within text box
+void selectInteraction(Interaction newInteraction) {
+  if (newInteraction != null && newInteraction != currentInteraction) {
+    if (currentInteraction != null) {
+      currentInteraction.teardown(cp5);
     }
-    Set<String> keys2 = actuatorInputs.keySet();
-    for(String key: keys2){
-        output.print(key+"\t"); // Write the header to the file
-        //text(key+"\t", 10, 10, 70, 80);  // Text wraps within text box
-    }
-    output.print("\n");
-
-    println("Starting writing to file: "+filename);
-    c1 = c2;
-    c2 = color(0,160,100);
-    fileStarted=true;
+    currentInteraction = newInteraction;
+    currentInteraction.prepare(currentMeasurement, cp5);
   }
-  else println("There are no sensor inputs for now.");
-}
-
-// function End will receive changes from 
-// controller with name End
-public void EndFile(int theValue) {
-  if(fileStarted){
-    println("Ending file");
-    output.flush(); // Writes the remaining data to the file
-    output.close(); // Finishes the file
-    c1 = c2;
-    c2 = color(150,0,0);
-    fileStarted=false;
-    framefile=0;
-  }
-}
-
-enum SelectedInteraction {
-  NotReady,
-  Nothing,
-  FollowBreathing1,
-  FollowBreathing2,
-  SlowBreathing,
-  SquareBreathing,
-  DeflateAll,
-  StopAll
-};
-
-SelectedInteraction selection = SelectedInteraction.NotReady;
-
-public void onInteractionChanged(SelectedInteraction newSelect) {
-  if (instructionsAudio != null) instructionsAudio.stop();
-  switch (newSelect) {
-  case Nothing:
-    cp5.getController("Number_of_Cycles").setVisible(false);
-    cp5.getController("Duration_of_Exercise").setVisible(false);
-    
-    cp5.getController("Inflation_Rate").setVisible(false);
-    cp5.getController("Deflation_Rate").setVisible(false);
-    cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
-    break;
-  case FollowBreathing1:
-    // Fall through to FollowBreathing2
-  case FollowBreathing2:
-    initializeFollowBreathing();
-    cp5.getController("Number_of_Cycles").setVisible(false);
-    cp5.getController("Duration_of_Exercise").setVisible(false);
-    
-    cp5.getController("Inflation_Rate").setVisible(false);
-    cp5.getController("Deflation_Rate").setVisible(false);
-    cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
-    break;
-  case SlowBreathing:
-    interaction_part = 0;
-    interactionstarted = false;
-    cp5.getController("Number_of_Cycles").setVisible(false);
-    cp5.getController("Duration_of_Exercise").setVisible(true);
-    
-    cp5.getController("Inflation_Rate").setVisible(true);
-    cp5.getController("Deflation_Rate").setVisible(true);
-    cp5.getController("Inhale_or_Exhale_Duration").setVisible(true);
-    break;
-  case SquareBreathing:
-    interaction_part = 0;
-    interactionstarted = false;
-    cp5.getController("Number_of_Cycles").setVisible(true);
-    cp5.getController("Duration_of_Exercise").setVisible(false);
-    
-    cp5.getController("Inflation_Rate").setVisible(true);
-    cp5.getController("Deflation_Rate").setVisible(true);
-    cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
-    break;
-  case DeflateAll:
-    cp5.getController("Number_of_Cycles").setVisible(false);
-    cp5.getController("Duration_of_Exercise").setVisible(false);
-    
-    cp5.getController("Inflation_Rate").setVisible(false);
-    cp5.getController("Deflation_Rate").setVisible(false);
-    cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
-    break;
-  case StopAll:
-    cp5.getController("Number_of_Cycles").setVisible(false);
-    cp5.getController("Duration_of_Exercise").setVisible(false);
-    
-    cp5.getController("Inflation_Rate").setVisible(false);
-    cp5.getController("Deflation_Rate").setVisible(false);
-    cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
-    break;
-  default:
-    break;
-  }
-  selection = newSelect;
 }
 
 public void Breath_Mirroring_1() {
-  if (selection != SelectedInteraction.NotReady && selection != SelectedInteraction.FollowBreathing1) {
-    instructionsAudioPath =  "Breathing-1-instructions.mp3";
-    exerciseAudioPath =  "Breathing-1-exercise.mp3";
-    onInteractionChanged(SelectedInteraction.FollowBreathing1);
-  }
+  selectInteraction(breathMirroring1);
 }
 
 public void Breath_Mirroring_2() {
-  if (selection != SelectedInteraction.NotReady && selection != SelectedInteraction.FollowBreathing2) {
-    instructionsAudioPath =  "Breathing-2-instructions.mp3";
-    exerciseAudioPath =  "Breathing-2-exercise.mp3";
-    onInteractionChanged(SelectedInteraction.FollowBreathing2);
-  }
+  selectInteraction(breathMirroring2);
 }
 
 public void Slow_HRV_Breathing() {
-  if (selection != SelectedInteraction.NotReady && selection != SelectedInteraction.SlowBreathing) {
-    onInteractionChanged(SelectedInteraction.SlowBreathing);
-  }
+  selectInteraction(hrvBreathing);
 }
 public void Square_Breathing() {
-  if (selection != SelectedInteraction.NotReady && selection != SelectedInteraction.SquareBreathing) {
-    onInteractionChanged(SelectedInteraction.SquareBreathing);
-  }
+  selectInteraction(squareBreathing);
 }
 
 public void Deflate_All_Pillows() {
-  if (selection != SelectedInteraction.NotReady && selection != SelectedInteraction.DeflateAll) {
-    onInteractionChanged(SelectedInteraction.DeflateAll);
-  }
+  selectInteraction(deflateAll);
 }
 
 public void Stop_All_Pillows() {
-  if (selection != SelectedInteraction.NotReady && selection != SelectedInteraction.StopAll) {
-    onInteractionChanged(SelectedInteraction.StopAll);
-  }
+  selectInteraction(stopAll);
 }
 
+Measurement readInputs() {
+  return new Measurement(System.currentTimeMillis(),
+                         readFloat("1/pressure", 0.0),
+                         readFloat("2/pressure", 0.0),
+                         readFloat("3/pressure", 0.0),
+                         readFloat("4/pressure", 0.0),
+                         readFloat("5/pressure", 0.0),
+                         buttonStatus
+                         );
+}
 
+void sendOutputValues(Output out) {
+  sendTo(1, out.pressure1);
+  sendTo(2, out.pressure2);
+  sendTo(3, out.pressure3);
+  sendTo(4, out.pressure4);
+  sendTo(5, out.pressure5);
+}
+
+void sendTo(int device, float value) {
+  OscMessage message = new OscMessage("/actuator/inflate");
+  message.add(clip(value, -100, 100));
+  sendToOneActuator(message, device);
+}
 
 void draw() {
-  background(myColor);
-  myColor = lerpColor(c1, c2, n);
-  n += (1 - n) * 0.1;
+  background(color(0, 0, 30));
 
-  if (fileStarted) {
-    output.print(++framefile + "\t");
+  currentMeasurement = readInputs();
 
-    //writes headers of files
-    Set<String> keys = sensorInputs.keySet();
-    for (String key : keys) {
-      output.print(sensorInputs.get(key)[0] + "\t"); // Write the header to the file
-    }
-    Set<String> keys2 = actuatorInputs.keySet();
-    for (String key : keys2) {
-      output.print(actuatorInputs.get(key)[0] + "\t"); // Write the header to the file
-    }
-    output.print("\n");
-  }
-  //background(0);
-  //if(sensorInputs.size()>0)
-  // printAllSensorInputs();
-
-
-  if (millis() - overrideTime >= overrideWait) {
-    overrideCoupling = false;
-  }
-
-  if (millis() - waitForPressureTime >= waitForPressureWait) {
-    waitForPressure = false;
-  }
-
-  float pressure1 = 0;
-  float pressure2 = 0;
-  float pressure3 = 0;
-  float pressure4 = 0;
-  float pressure5 = 0;
-
-  if (sensorInputs.get("1/pressure") != null) {
-    pressure1 = (Float) sensorInputs.get("1/pressure")[0];
-  }
-  if (sensorInputs.get("2/pressure") != null) {
-    pressure2 = (Float) sensorInputs.get("2/pressure")[0];
-  }
-  if (sensorInputs.get("3/pressure") != null) {
-    pressure3 = (Float) sensorInputs.get("3/pressure")[0];
-  }
-  if (sensorInputs.get("4/pressure") != null) {
-    pressure4 = (Float) sensorInputs.get("4/pressure")[0];
-  }
-    if (sensorInputs.get("5/pressure") != null) {
-    pressure5 = (Float) sensorInputs.get("5/pressure")[0];
-  }
-
-  myTextarea1.setText("Pressure in the bit number one:    " + (pressure1) + " \n\n"
-      + "Pressure in the bit number two:     " + (pressure2) + " \n\n"
-      + "Pressure in the bit number three:   " + (pressure3) + "\n\n"
-      + "Pressure in the bit number four:    " + (pressure4) + "\n\n"
-      + "Pressure in the bit number five:    " + (pressure5) + "\n\n"
+  myTextarea1.setText("Pressure in the bit number one:    " + (currentMeasurement.pressure1) + " \n\n"
+      + "Pressure in the bit number two:     " + (currentMeasurement.pressure2) + " \n\n"
+      + "Pressure in the bit number three:   " + (currentMeasurement.pressure3) + "\n\n"
+      + "Pressure in the bit number four:    " + (currentMeasurement.pressure4) + "\n\n"
+      + "Pressure in the bit number five:    " + (currentMeasurement.pressure5) + "\n\n"
       + "Button state:                       " + buttonStatus
   );
 
-  endCapture();
+  Output output = currentInteraction != null
+    ? currentInteraction.run(currentMeasurement)
+    : null;
 
-  switch (selection) {
-  case FollowBreathing1:
-    interaction_One();
-    break;
-  case FollowBreathing2:
-    interaction_One();
-    break;
-  case SlowBreathing:
-    interaction_Two();
-    break;
-  case SquareBreathing:
-    interaction_Three();
-    break;
-  case DeflateAll:
-    deflating_Units();
-    break;
-  case StopAll:
-    stopping_Units();
-    break;
-  default:
-    break;
+  if (output != null) {
+    sendOutputValues(output);
   }
 }
 
+class DeflateAll implements Interaction {
+  public void prepare(Measurement initialState, ControlP5 cp5) {}
 
-
-void interaction_Two(){
-// +++++++++++++++++++++++++++++++++++Slow HRV breathing++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-slow_breathing_duration = int(cp5.getController("Duration_of_Exercise").getValue());
-
-if (interaction_part==0){
-
-if(interactionstarted==false){
-interactionstarttime = System.currentTimeMillis();
-interactionstarted = true;
-
-}  
-  
-interactioncurrenttime = System.currentTimeMillis();  
-  
-if ((interactioncurrenttime - interactionstarttime)<10000){
-  myTextarea2.setText("In this interaction we would like you to do your everyday latop activities, while wearing the artefact");  
-  OscMessage myMessage1;
-  myMessage1 = new OscMessage("/actuator/inflate");
-  myMessage1.add(0.0);
-  sendToAllActuators(myMessage1);
-}
-
-else{
-interaction_part = 1;
-interactionstarted=false;
-}
-  
-
-  
-  
-}  
-  
-if (interaction_part==1) {   
-if(interactionstarted==false){
-interactionstarttime = System.currentTimeMillis();
-longinteractionstarttime = System.currentTimeMillis();
-interactionstarted = true;
-}
-
-if ((interactioncurrenttime - longinteractionstarttime)<(slow_breathing_duration*60000)) {
-interactioncurrenttime = System.currentTimeMillis();
-phasedur = int(cp5.getController("Inhale_or_Exhale_Duration").getValue()*1000);
-phase = (int)((interactioncurrenttime - interactionstarttime)/phasedur);
-
-OscMessage myMessage1;
-myMessage1 = new OscMessage("/actuator/inflate");
-
-  switch (phase)
-  {
-
-    case 0: 
-        //println("Inhale");  
-        if(in_phase){
-        myMessage1.add(cp5.getController("Inflation_Rate").getValue()); 
-        }
-        else{
-        myMessage1.add(-(cp5.getController("Deflation_Rate").getValue())); 
-        }        
-        sendToAllActuators(myMessage1);
-        //myTextarea2.setText("INHALE  "+(interactioncurrenttime-(phase*phasedur+interactionstarttime))/1000);
-    break;
-  case 1: 
-        //println("Exhale"); 
-        if (in_phase){
-        myMessage1.add(-(cp5.getController("Deflation_Rate").getValue())); 
-        }
-        else{
-        myMessage1.add(cp5.getController("Inflation_Rate").getValue()); 
-        }
-        sendToAllActuators(myMessage1);
-        //myTextarea2.setText("HOLD "+(interactioncurrenttime-(phase*phasedur+interactionstarttime))/1000);
-    break;
-}
-
-myTextarea2.setText("Long interacton start time:    "+(longinteractionstarttime) + " \n\n" +
-  "Phase start time:    "+(interactionstarttime)+ " \n\n" +
-  "Current time:    "+(interactioncurrenttime)+ " \n\n" +
-  "Delta:    "+(interactioncurrenttime - interactionstarttime) + " \n\n" +
-  "Phase:    "+((interactioncurrenttime - interactionstarttime)/phasedur));
-
-if (((interactioncurrenttime - interactionstarttime)/phasedur)>1){
-  interactionstarttime = interactioncurrenttime;
+  public Output run(Measurement inputs) {
+    return new Output(-100.0,
+                      -100.0,
+                      -100.0,
+                      -100.0,
+                      -100.0
+                      );
   }
 
-
-
-
-} 
-else {
-interaction_part = 2;
-interactionstarted=false;  
-}  
-  
-  
-}
-
-
-if (interaction_part==2){
-myTextarea2.setText("And this is the end of the exercise!");  
-OscMessage myMessage1;
-myMessage1 = new OscMessage("/actuator/inflate");
-myMessage1.add(0.0);
-sendToAllActuators(myMessage1);    
-}
-}
-
-void interaction_Three(){
-//+++++++++++++++++++++++++++++++++Equal / Square Breathing++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-n_cycles = int(cp5.getController("Number_of_Cycles").getValue());
-if (interaction_part==0){
-
-if(interactionstarted==false){
-interactionstarttime = System.currentTimeMillis();
-interactionstarted = true;
-
-}
-  
-interactioncurrenttime = System.currentTimeMillis();  
-  
-if ((interactioncurrenttime - interactionstarttime)<10000){
-  myTextarea2.setText("The next exercise we are going to do is very much based on a yoga breathing exercise. We are going to inhale, hold our breath, exhale and hold our breath. And we are going to do that on the increasing number counts.");  
-OscMessage myMessage1;
-myMessage1 = new OscMessage("/actuator/inflate");
-myMessage1.add(0.0);
-sendToAllActuators(myMessage1);  
-}
-
-else{
-interaction_part = 1;
-interactionstarted=false;
-}
-  
-}
-  
-  
-  
-  
-if (interaction_part==1) { 
-if (duration_chapter<4){  
-if (current_cycle<n_cycles){
-if(interactionstarted==false){
-interactionstarttime = System.currentTimeMillis();
-interactionstarted = true;
-}
-
-  
-  
-interactioncurrenttime = System.currentTimeMillis();
-
-
-   switch(duration_chapter)
-   {
-   case 0:
-   phasedur = 3000;
-   break;
-   case 1:
-   phasedur = 5000;
-   break;
-   case 2:
-   phasedur = 7000;
-   break;
-   case 3:
-   phasedur = 10000;
-   break;  
-   }
-
-
-
-
-  phase = (int)((interactioncurrenttime - interactionstarttime)/phasedur);
-
-  OscMessage myMessage1;
-  myMessage1 = new OscMessage("/actuator/inflate");
-
-
-
-  switch (phase)
-  {
-
-    case 0: 
-        //println("Inhale"); 
-        if(in_phase){
-        myMessage1.add((cp5.getController("Inflation_Rate").getValue())); 
-        }
-        else{
-        myMessage1.add(-(cp5.getController("Deflation_Rate").getValue()));  
-        }  
-        sendToAllActuators(myMessage1);
-        myTextarea2.setText("INHALE    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
-    break;
-  case 1: 
-        //println("Hold");  
-        myMessage1.add(0.0); 
-        sendToAllActuators(myMessage1);
-        myTextarea2.setText("HOLD    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
-    break;
-  case 2:
-
-        //println("Exhale");  
-        if(in_phase){
-        myMessage1.add(-(cp5.getController("Deflation_Rate").getValue())); 
-        }
-        else {
-        myMessage1.add(cp5.getController("Inflation_Rate").getValue());
-        }
-        sendToAllActuators(myMessage1);
-        myTextarea2.setText("EXHALE    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
-    break;
-   case 3:
-
-        //println("Hold");  
-        myMessage1.add(0.0); 
-        sendToAllActuators(myMessage1);
-        myTextarea2.setText("HOLD    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
-    break;
+  public void teardown(ControlP5 cp5) {
+    OscMessage myMessage1;
+    myMessage1 = new OscMessage("/actuator/inflate");
+    myMessage1.add(0.0);
+    sendToAllActuators(myMessage1);
   }
- 
- 
- 
- // That is debugging information, please unqote, if the interaction goes somewhere....
- /*
-  myTextarea2.setText("Start time:    "+(interactionstarttime) + " \n\n" +
-  "Current time:    "+(interactioncurrenttime)+ " \n\n" +
-  "Delta:    "+(interactioncurrenttime - interactionstarttime) + " \n\n" +
-  "Phase:    "+((interactioncurrenttime - interactionstarttime)/phasedur) +" \n\n" +
-  "Cycle:    "+(current_cycle) + " \n\n" +
-  "Duration Chapter:   " +(duration_chapter)+ " \n\n" +
-  "Duration:    " + (phasedur));
-  */
-  
+}
 
-  
-  
-  
-  
-  if (((interactioncurrenttime - interactionstarttime)/phasedur)>3){
-  interactionstarttime = interactioncurrenttime;
-  current_cycle++;
+class StopAll implements Interaction {
+  public void prepare(Measurement initialState, ControlP5 cp5) {}
+
+  public Output run(Measurement inputs) {
+    myTextarea2.setText("Stop!");
+    OscMessage myMessage1;
+    myMessage1 = new OscMessage("/actuator/inflate");
+    myMessage1.add(0.0);
+    sendToAllActuators(myMessage1);
+    return null;
   }
 
-  
-  
+  public void teardown(ControlP5 cp5) {}
 }
 
-else{
-duration_chapter++;
-current_cycle=0;
-}
-
-
-}
-
-else{
-interaction_part = 2;
-interactionstarted=false;  
-}
-
-
-
-} 
-  
- if (interaction_part==2){
- myTextarea2.setText("And this is the end of the exercise!");
- OscMessage myMessage1;
- myMessage1 = new OscMessage("/actuator/inflate");
- myMessage1.add(0.0);
- sendToAllActuators(myMessage1);
-   
- }
-
-
-  
-}
-
-void deflating_Units(){
-
-//println("Deflation in process!"); 
-
-        OscMessage myMessage1;
-        myMessage1 = new OscMessage("/actuator/inflate");
-        myMessage1.add(-100.0);
-        sendToAllActuators(myMessage1);
-}
-
-void stopping_Units(){
-
-//println("Full Stop in process!");  
-
-  myTextarea2.setText("Stop!");
-
-        OscMessage myMessage1;
-        myMessage1 = new OscMessage("/actuator/inflate");
-        myMessage1.add(0.0);
-        sendToAllActuators(myMessage1);
-}
-
-
-
-void plotPressure(){
-
-  //if(waitForPressure) return;
-
-   // copy everything one value down
-  for (int i=0; i<arrayOfFloats.length-1; i++) {
-    arrayOfFloats[i] = arrayOfFloats[i+1];
-  }
-
-  float newValue = 0;//noise(frameCount*0.01)*width;
-
-  //println(newValue);
-
-  if(sensorInputs.get(String.join("/",Integer.toString(firstCouplingSensorId),"pressure")) != null) {
-      //float yoffset = map(mouseY, 0, height, 0, 1);
-      newValue = (Float) sensorInputs.get(String.join("/",Integer.toString(firstCouplingSensorId),"pressure"))[0];
-  }
-
-  //println("Pressure:", newValue);
-
-  newValue = (newValue - 1000) * 20;
-
-  // set last value to the new value
-  arrayOfFloats[arrayOfFloats.length-1] = newValue;
-
-}
-
-
-
-
-
-
-
-
-
-
+// OSC handling
 void oscEvent(OscMessage theOscMessage) {
   /* check if the address pattern fits any of our patterns */
   if (theOscMessage.addrPattern().equals(SensorConnectPattern)) {
@@ -964,10 +489,6 @@ void oscEvent(OscMessage theOscMessage) {
   }
   else if (theOscMessage.addrPattern().equals(ActuatorDisconnectPattern)) {
     // disconnectActuator(theOscMessage.netAddress().address());
-  }
-  else if (theOscMessage.addrPattern().equals(wekaPattern)) {
-    //custom code to deal with it (replace function when needed)
-    WekinatorMKRVibe(theOscMessage);
   }
   else if (theOscMessage.addrPattern().equals(riotPattern)) {
     //custom code to deal with it (replace function when needed)
@@ -1007,8 +528,6 @@ void oscEvent(OscMessage theOscMessage) {
       theOscMessage.setAddrPattern(cleanActuatorPattern(theOscMessage));
       sendToOneActuator(theOscMessage,id);
     }
-    addToActuatorInputs(theOscMessage.addrPattern(),theOscMessage.arguments()); //put it in the actuator input history
-
     //printOSCMessage(theOscMessage);
 
     //stop couplings for a while
@@ -1022,17 +541,9 @@ void oscEvent(OscMessage theOscMessage) {
   }
 }
 
-private void addToActuatorInputs(String osckey, Object[] values){
-  if(actuatorInputs.put(osckey,values) == null && fileStarted){
-    println("Received a new actuator: ENDING FILE PREMATURELY");
-    EndFile(0);
-  }
-}
-
 private void addToSensorInputs(String osckey, Object[] values){
   if(sensorInputs.put(osckey,values) == null && fileStarted){
     println("Received a new sensor: ENDING FILE PREMATURELY");
-    EndFile(0);
   }
 }
 
@@ -1208,88 +719,3 @@ void printOSCMessage(OscMessage theOscMessage) {
    println(" ## Ending of message");
 }
 
-void trainWekinatorWithAllSensors() {
-  //println("entering");
-  OscMessage wekaMsg = new OscMessage("/wek/inputs");
-  int i = 0;
-  float[] args = new float[sensorInputs.size()];
-
-  //println("entering trouble:"+sensorInputs.size());
-
-  println("### Training WEKA with all sensors (" + sensorInputs.size()+"):");
-     // Using an enhanced loop to iterate over each entry
-
-     Iterator entries = sensorInputs.entrySet().iterator();
-      while (entries.hasNext()) {
-            Map.Entry entry = (Map.Entry) entries.next();
-            String key = (String)entry.getKey();
-            Object[] value = (Object[])entry.getValue();
-            print("["+(i)+"] ");
-            print(key + " is ");
-            println(value);
-            args[i]=(float)value[0];
-            i++;
-        }
-
-     //for (Map.Entry me : sensorInputs.entrySet()) {
-
-     //   String key = (String) me.getKey();
-     //   Object[] value = (Object[])me.getValue();
-     //   print("["+(i)+"] ");
-     //   print(key + " is ");
-     //   println(value);
-     //   args[i]=(float)value[0];
-     //   i++;
-     // }
-
-
-//println("Im REALLY out of trouble");
-      //for (Map.Entry me : sensorInputs.entrySet()) {
-      //  print("["+(i)+"] ");
-      //  print(me.getKey() + " is ");
-      //  println(me.getValue());
-
-      //  wekaMsg.add((Object[])me.getValue());
-      //  //args[i] = (me.getValue())[0];
-      //  i++;
-      //}
-
-  wekaMsg.add(args);
-
-  printOSCMessage(wekaMsg);
-
-  oscP5.send(wekaMsg, wekinator);
-}
-
-void trainWekinatorMsg(OscMessage msg) {
-  OscMessage wekaMsg = new OscMessage("/wek/inputs");
-  wekaMsg.setArguments(msg.arguments());
-  printOSCMessage(wekaMsg);
-
-  oscP5.send(wekaMsg, wekinator);
-}
-
-void WekinatorMKRVibe(OscMessage theOscMessage){
-  OscBundle myBundle = new OscBundle();
-
-  //open wek/outputs
-  OscMessage intensity1Message = new OscMessage("/actuator/vibeintensity1");
-  intensity1Message.add(theOscMessage.get(0).floatValue());
-  myBundle.add(intensity1Message);
-
-  OscMessage intensity2Message = new OscMessage("/actuator/vibeintensity2");
-  intensity2Message.add(theOscMessage.get(1).floatValue());
-   myBundle.add(intensity2Message);
-
-  OscMessage time1Message = new OscMessage("/actuator/vibetime1");
-  time1Message.add(theOscMessage.get(2).floatValue());
-  myBundle.add(time1Message);
-
-  OscMessage time2Message = new OscMessage("/actuator/vibetime2");
-  time2Message.add(theOscMessage.get(3).floatValue());
-  myBundle.add(time2Message);
-
-  myBundle.setTimetag(myBundle.now() + 10000);
-
-  oscP5.send(myBundle, ActuatorNetAddressList);
-}
