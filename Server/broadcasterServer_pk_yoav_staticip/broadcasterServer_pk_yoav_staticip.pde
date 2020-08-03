@@ -347,7 +347,22 @@ void setup() {
 
   hrvBreathing = new HrvBreathing();
 
-  squareBreathing = new SquareBreathing();
+  ArrayList<SoundFile> countAudioFiles = new ArrayList();
+  countAudioFiles.add(new SoundFile(this, "audio/one.wav"));
+  countAudioFiles.add(new SoundFile(this, "audio/two.wav"));
+  countAudioFiles.add(new SoundFile(this, "audio/three.wav"));
+  countAudioFiles.add(new SoundFile(this, "audio/four.wav"));
+  countAudioFiles.add(new SoundFile(this, "audio/five.wav"));
+  countAudioFiles.add(new SoundFile(this, "audio/six.wav"));
+  countAudioFiles.add(new SoundFile(this, "audio/seven.wav"));
+  countAudioFiles.add(new SoundFile(this, "audio/eight.wav"));
+  countAudioFiles.add(new SoundFile(this, "audio/nine.wav"));
+  countAudioFiles.add(new SoundFile(this, "audio/ten.wav"));
+  squareBreathing = new SquareBreathing(countAudioFiles,
+                                        new SoundFile(this, "audio/exhale.wav"),
+                                        new SoundFile(this, "audio/inhale.wav"),
+                                        new SoundFile(this, "audio/hold.wav")
+                                        );
 
   deflateAll = new DeflateAll();
 

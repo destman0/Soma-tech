@@ -7,16 +7,31 @@ class SquareBreathing implements Interaction {
   private int n_cycles;
   private int current_cycle;
   private long phasedur;
-  private int phase;
+  private int phase = -1;
+  private long remainingTimeForPhaseSec;
 
-  public SquareBreathing() {}
+  private ArrayList<SoundFile> countingAudio;
+  private SoundFile exhaleAudio;
+  private SoundFile inhaleAudio;
+  private SoundFile holdAudio;
+
+  private final int INHALE = 0;
+  private final int HOLD1  = 1;
+  private final int EXHALE = 2;
+  private final int HOLD2  = 4;
+
+  public SquareBreathing(ArrayList<SoundFile> countingAudio, SoundFile exhaleAudio, SoundFile inhaleAudio, SoundFile holdAudio) {
+    this.countingAudio = countingAudio;
+    this.exhaleAudio = exhaleAudio;
+    this.inhaleAudio = inhaleAudio;
+    this.holdAudio   = holdAudio;
+  }
 
   public void prepare(Measurement initialState, ControlP5 cp5) {
     interaction_part = 0;
     interactionstarted = false;
     cp5.getController("Number_of_Cycles").setVisible(true);
     cp5.getController("Duration_of_Exercise").setVisible(false);
-    
     cp5.getController("Inflation_Rate").setVisible(true);
     cp5.getController("Deflation_Rate").setVisible(true);
     cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
@@ -68,29 +83,31 @@ class SquareBreathing implements Interaction {
             phasedur = 10000;
             break;  
           }
-          phase = (int)((interactioncurrenttime - interactionstarttime)/phasedur);
+          int currentPhase = (int)((interactioncurrenttime - interactionstarttime) / phasedur);
+          long endTime = interactionstarttime + (( currentPhase + 1 ) * phasedur);
+          long remainingTimeForPhaseMs = endTime - interactioncurrenttime;
+          long currentRemainingTimeForPhaseSec = remainingTimeForPhaseMs / 1000; 
           OscMessage myMessage1;
           myMessage1 = new OscMessage("/actuator/inflate");
-          switch (phase)
+          switch (currentPhase)
           {
-            case 0: 
+            case INHALE: 
             //println("Inhale"); 
             if(in_phase){
               myMessage1.add((cp5.getController("Inflation_Rate").getValue())); 
-            }
-            else{
+            } else{
               myMessage1.add(-(cp5.getController("Deflation_Rate").getValue()));  
             }  
             sendToAllActuators(myMessage1);
-            myTextarea2.setText("INHALE    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
+            myTextarea2.setText(( in_phase ? "INHALE    " : "EXHALE    " ) + currentRemainingTimeForPhaseSec);
             break;
-          case 1: 
+          case HOLD1: 
             //println("Hold");  
             myMessage1.add(0.0); 
             sendToAllActuators(myMessage1);
-            myTextarea2.setText("HOLD    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
+            myTextarea2.setText("HOLD    "+currentRemainingTimeForPhaseSec);
             break;
-          case 2:
+          case EXHALE:
             //println("Exhale");  
             if(in_phase){
               myMessage1.add(-(cp5.getController("Deflation_Rate").getValue())); 
@@ -99,15 +116,21 @@ class SquareBreathing implements Interaction {
               myMessage1.add(cp5.getController("Inflation_Rate").getValue());
             }
             sendToAllActuators(myMessage1);
-            myTextarea2.setText("EXHALE    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
+            myTextarea2.setText(( in_phase ? "EXHALE    " : "INHALE    " )+currentRemainingTimeForPhaseSec);
             break;
-          case 3:
+          case HOLD2:
             //println("Hold");  
             myMessage1.add(0.0); 
             sendToAllActuators(myMessage1);
-            myTextarea2.setText("HOLD    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
+            myTextarea2.setText("HOLD    "+currentRemainingTimeForPhaseSec);
             break;
         }
+          if (phase != currentPhase) {
+            playPhaseAudio(currentPhase);
+          } else if (currentRemainingTimeForPhaseSec != remainingTimeForPhaseSec) {
+            playCountAudio((int)currentRemainingTimeForPhaseSec);
+          }
+
         // That is debugging information, please unqote, if the interaction goes somewhere....
         /*
           myTextarea2.setText("Start time:    "+(interactionstarttime) + " \n\n" +
@@ -121,7 +144,10 @@ class SquareBreathing implements Interaction {
           if (((interactioncurrenttime - interactionstarttime)/phasedur)>3){
             interactionstarttime = interactioncurrenttime;
             current_cycle++;
+            phase = -1;
           }
+          phase = currentPhase;
+          remainingTimeForPhaseSec = currentRemainingTimeForPhaseSec;
         }
 
         else{
@@ -151,5 +177,31 @@ class SquareBreathing implements Interaction {
     cp5.getController("Inflation_Rate").setVisible(false);
     cp5.getController("Deflation_Rate").setVisible(false);
     cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
+  }
+
+  private void playCountAudio(int count) {
+    println("Play audio for " + count);
+    if (count < countingAudio.size()) {
+      countingAudio.get(count).play();
+    }
+  }
+
+  private void playPhaseAudio(int phase) {
+    println("Play phase " + phase);
+    switch (phase) {
+    case INHALE:
+      println("Play inhale " + phase);
+      ( in_phase ? inhaleAudio : exhaleAudio ).play();
+      return;
+    case EXHALE:
+      println("Play exhale " + phase);
+      ( in_phase ? exhaleAudio : inhaleAudio ).play();
+      return;
+    case HOLD1: // Fall-through
+    case HOLD2: // Fall-through
+      println("Play hold " + phase);
+      holdAudio.play();
+      return;
+    }
   }
 }
