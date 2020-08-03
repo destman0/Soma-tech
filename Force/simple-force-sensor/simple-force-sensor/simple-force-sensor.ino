@@ -1,7 +1,7 @@
 //completele based on https://learn.adafruit.com/force-sensitive-resistor-fsr/using-an-fsr
 
  
-int fsrAnalogPin = 0; // FSR is connected to analog 0
+int fsrAnalogPin = 1; // FSR is connected to analog 0
 int fsrReading;      // the analog reading from the FSR resistor divider
 
  
