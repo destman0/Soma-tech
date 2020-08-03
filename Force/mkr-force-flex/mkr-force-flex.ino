@@ -24,7 +24,7 @@ Adafruit_MPRLS mpr = Adafruit_MPRLS(RESET_PIN, EOC_PIN);
 
 int inflatePower = 0;
 
-const int fsrPin = 1;     // the number of the pushbutton pin
+const int fsrPin = 1;     // the number of the force or flex sensor pin
 
 char ssid[] = "serv";        // your network SSID (name)
 char pass[] = "somaserv";    // your network password (use for WPA, or use as key for WEP)
@@ -117,7 +117,7 @@ void loop() {
     }
 
 
-    //we send the pressure in a OSC message to the server every some miliseconds, specified in the variable 'period'
+    //we send the force/flex values in a OSC message to the server every some miliseconds, specified in the variable 'period'
     
     
     if(millis() > time_now + period){
@@ -178,6 +178,7 @@ void sendOSCPressure(float pressure) {
   delay(20);
 }
 
+// Function for sending force / flex sensor values
 void sendOSCForce(float fsr) {
   //the message wants an OSC address as first argument
   OSCMessage msg("/sensor/force");
