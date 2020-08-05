@@ -148,12 +148,12 @@ class SquareBreathing implements Interaction {
       else{
         interaction_part = 2;
         interactionstarted=false;  
+        inhaleAudio.stop();
+        if (!outroAudio.isPlaying()) outroAudio.play();
       }
     } 
 
     if (interaction_part==2){
-      inhaleAudio.stop();
-      outroAudio.play();
       myTextarea2.setText("And this is the end of the exercise!");
       OscMessage myMessage1;
       myMessage1 = new OscMessage("/actuator/inflate");
