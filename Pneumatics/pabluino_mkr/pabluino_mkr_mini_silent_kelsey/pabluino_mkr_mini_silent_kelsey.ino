@@ -37,7 +37,7 @@ WiFiUDP Udp;
 
 const IPAddress serverIp(192, 168, 0, 197); // 192, 168, 0, 140
 
-const unsigned int serverPort = 32003; // 32000, 32001, 32002, 32003
+const unsigned int serverPort = 32002; // 32000, 32001, 32002, 32003
 
 unsigned long time_now = 0; //in order to keep the time so that we can simulate delay() without blocking the loop() function
 int period = 20;  //how often in miliseconds to send the pressure to the server
@@ -167,14 +167,14 @@ void loop() {
         sendOSCPressure(getPressure());
     }
 
-    //this is just while Pavel does not add physical buttons! WHen he does, delete this code
+    /*this is just while Pavel does not add physical buttons! WHen he does, delete this code
      if(millis() > time_now_connect_server + period_connect_server){
         time_now_connect_server = millis();
         sendOSCPressure(getPressure());
         connectToServer();
         delay(50);
     }
-     
+    */ 
 }
 
 void routeInflate(OSCMessage &msg) {
@@ -246,8 +246,8 @@ float getPressure()
 {
 
     float pressure_hPa = mpr.readPressure();
-    Serial.print("Pressure (hPa): "); Serial.println(pressure_hPa);
-    Serial.print("Pressure (PSI): "); Serial.println(pressure_hPa / 68.947572932); 
+    //Serial.print("Pressure (hPa): "); Serial.println(pressure_hPa);
+    //Serial.print("Pressure (PSI): "); Serial.println(pressure_hPa / 68.947572932); 
     return mpr.readPressure();
 }  
 
