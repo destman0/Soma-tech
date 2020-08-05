@@ -358,10 +358,12 @@ void setup() {
   countAudioFiles.add(new SoundFile(this, "audio/eight.wav"));
   countAudioFiles.add(new SoundFile(this, "audio/nine.wav"));
   countAudioFiles.add(new SoundFile(this, "audio/ten.wav"));
-  squareBreathing = new SquareBreathing(countAudioFiles,
+  squareBreathing = new SquareBreathing(new SoundFile(this, "audio/square-instructions.wav"),
+                                        countAudioFiles,
                                         new SoundFile(this, "audio/exhale.wav"),
                                         new SoundFile(this, "audio/inhale.wav"),
-                                        new SoundFile(this, "audio/hold.wav")
+                                        new SoundFile(this, "audio/hold.wav"),
+                                        new SoundFile(this, "audio/and-breath-in-normally.wav")
                                         );
 
   deflateAll = new DeflateAll();
