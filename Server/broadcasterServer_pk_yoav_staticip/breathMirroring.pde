@@ -15,9 +15,6 @@ class BreathMirroring implements Interaction {
   // String instructionsAudioPath =  "Breathing-1-instructions.mp3";
   // String exerciseAudioPath =  "Breathing-1-exercise.mp3";
 
-  SimpleDateFormat dateFormatter=new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSS");
-  SimpleDateFormat fileNameFormat=new SimpleDateFormat("'pressure'-yyyy-MM-dd-HH-mm-ss.'log'");
-
   float GOAL_PRESSURE = 1210;
   float GOAL_TOLERANCE = 20;
   long MEASUREMENT_PHASE_TIME = 1 * 60 * 1000;
@@ -43,18 +40,20 @@ class BreathMirroring implements Interaction {
 
   StateMachineRunner<Measurement> runner;
 
+  // This one is complex because it has an internal state machine.
   State<Measurement> instructionsState = new State<Measurement>() {
       long startTime;
       long runTime(long current) { return startTime > 0 ? current - startTime : 0; }
       TreeMap<Long, Output> timings;
       StateMachineRunner<Measurement> internal;
 
-      // Internal states for the instructions
+      // Internal states for the instructions state
       State<Measurement> preInflate = new State<Measurement>() {
           public void enter(Measurement in) {}
           public State<Measurement> run(Measurement in) {
             boolean done = adjustPressureTo(1040, in);
-            if (runTime(in.timeMs) < timings.firstKey()) {
+            long instructionsStart = timings.size() > 0 ? timings.firstKey() : 5000;
+            if (runTime(in.timeMs) < instructionsStart) {
               return this;
             } else {
               return instructions;
@@ -63,8 +62,7 @@ class BreathMirroring implements Interaction {
           public void exit() {}
         };
       State<Measurement> instructions = new State<Measurement>() {
-          public void enter(Measurement in) {
-          }
+          public void enter(Measurement in) {}
           public State<Measurement> run(Measurement in) {
             Map.Entry<Long, Output> entry = timings.lowerEntry(runTime(in.timeMs));
             if (entry == null) {
@@ -114,7 +112,9 @@ class BreathMirroring implements Interaction {
       public void exit() {}
     };
 
+  // Creating a new state that inherits 
   State<Measurement> measureState = new State<Measurement>() {
+      // Setup everything when the state starts
       public void enter(Measurement in) {
         startTimeMs = in.timeMs;
         measurements = new ArrayList(1000);
@@ -122,12 +122,15 @@ class BreathMirroring implements Interaction {
         exerciseAudio.play();
         myTextarea2.setText("Follow Breathing Interaction: Follow the instructions\n");
       }
+      // This is called in every iteration
       public State<Measurement> run(Measurement in) {
         long elapsedTime = in.timeMs - startTimeMs;
         if (exerciseAudio.isPlaying()) {
           measurements.add(in);
+          // Return the next state, which is unchanged (e.g. not changing state)
           return this;
         } else {
+          // Return change to "replayState", exit will be called
           return replayState;
         }
       }
@@ -166,6 +169,7 @@ class BreathMirroring implements Interaction {
         if (in.timeMs - startTime < 1000) {
           return this;
         }
+        // Returning "null" as next state will stop the state machine runner
         return null;
       }
       public void exit() {}
@@ -176,6 +180,7 @@ class BreathMirroring implements Interaction {
     return null;
   }
 
+  // Here starts the code that sends data and manipulates the recordings
   boolean adjustPressureTo(float goal, Measurement values) {
     if (values.pressure1 != 0.0) adjustPressure(values.pressure1, goal, 1);
     if (values.pressure2 != 0.0) adjustPressure(values.pressure2, goal, 2);

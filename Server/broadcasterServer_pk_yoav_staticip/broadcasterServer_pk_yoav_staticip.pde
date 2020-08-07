@@ -409,23 +409,24 @@ void setup() {
   }
 
   TreeMap<Long, Output> breathing1timings = new TreeMap();
-  breathing1timings.put(5000l, new Output());
-  breathing1timings.put(19142l, new Output().set1(30));
-  breathing1timings.put(27870l, new Output().set1(-15));
-  breathing1timings.put(35000l, new Output());
-  breathing1timings.put(43280l, new Output().set1(40));
-  breathing1timings.put(46370l, new Output().set1(-20));
-  breathing1timings.put(53450l, new Output());
-  breathing1timings.put(68400l, new Output().set1(30));
-  breathing1timings.put(83600l, new Output().set1(-30));
-  breathing1timings.put(87200l, new Output());
-  breathing1timings.put(94000l, new Output());
+  //                   Time in file millis,     output values
+  breathing1timings.put(5000l,                  new Output());
+  breathing1timings.put(19142l,                 new Output().set1(30));
+  breathing1timings.put(27870l,                 new Output().set1(-15));
+  breathing1timings.put(35000l,                 new Output());
+  breathing1timings.put(43280l,                 new Output().set1(40));
+  breathing1timings.put(46370l,                 new Output().set1(-20));
+  breathing1timings.put(53450l,                 new Output());
+  breathing1timings.put(68400l,                 new Output().set1(30));
+  breathing1timings.put(83600l,                 new Output().set1(-30));
+  breathing1timings.put(87200l,                 new Output());
+  breathing1timings.put(94000l,                 new Output());
   breathMirroring1 = new BreathMirroring(new SoundFile(this, "audio/breathing-exercise-1-instructions.wav"),
                                          new SoundFile(this, "audio/breathing-exercise-1-exercise.wav"),
                                          breathing1timings);
 
-  breathMirroring2 = new BreathMirroring(new SoundFile(this, "Breathing-2-instructions.mp3"),
-                                         new SoundFile(this, "Breathing-2-exercise.mp3"),
+  breathMirroring2 = new BreathMirroring(new SoundFile(this, "audio/mirror-breathing-2-instructions.wav"),
+                                         new SoundFile(this, "audio/mirror-breathing-2-exercise-v2.wav"),
                                          new TreeMap<Long, Output>());
 
   hrvBreathing = new HrvBreathing();
