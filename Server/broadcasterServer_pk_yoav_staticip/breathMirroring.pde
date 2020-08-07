@@ -1,6 +1,8 @@
 class BreathMirroring implements Interaction {
 
-  public BreathMirroring(SoundFile instructionsAudio, SoundFile exerciseAudio, TreeMap<Long, Output> instructionsTiming) {
+  public BreathMirroring(SoundFile instructionsAudio,
+                         SoundFile exerciseAudio,
+                         TreeMap<Long, Output> instructionsTiming) {
     this.instructionsAudio = instructionsAudio;
     this.exerciseAudio = exerciseAudio;
     this.instructionsTiming = instructionsTiming;
@@ -44,15 +46,15 @@ class BreathMirroring implements Interaction {
   State<Measurement> instructionsState = new State<Measurement>() {
       long startTime;
       long runTime(long current) { return startTime > 0 ? current - startTime : 0; }
-      TreeMap<Long, Output> timings = instructionsTiming;
+      TreeMap<Long, Output> timings;
       StateMachineRunner<Measurement> internal;
 
       // Internal states for the instructions
       State<Measurement> preInflate = new State<Measurement>() {
           public void enter(Measurement in) {}
           public State<Measurement> run(Measurement in) {
-            boolean done = adjustPressureTo(GOAL_PRESSURE, in);
-            if (runTime(in.timeMs) < 2000) {
+            boolean done = adjustPressureTo(1040, in);
+            if (runTime(in.timeMs) < timings.firstKey()) {
               return this;
             } else {
               return instructions;
@@ -62,9 +64,6 @@ class BreathMirroring implements Interaction {
         };
       State<Measurement> instructions = new State<Measurement>() {
           public void enter(Measurement in) {
-            timings.put(2000l, new Output().set1(100));
-            timings.put(3000l, new Output().set1(-35));
-            timings.put(7000l, new Output());
           }
           public State<Measurement> run(Measurement in) {
             Map.Entry<Long, Output> entry = timings.lowerEntry(runTime(in.timeMs));
@@ -99,6 +98,7 @@ class BreathMirroring implements Interaction {
         myTextarea2.setText("Follow Breathing Interaction");
         instructionsAudio.play();
         startTime = in.timeMs;
+        timings = instructionsTiming;
         // Initialize internal state machine
         internal = new StateMachineRunner<Measurement>(preInflate, in);
       }
