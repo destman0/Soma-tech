@@ -1,12 +1,14 @@
 class BreathMirroring implements Interaction {
 
-  public BreathMirroring(SoundFile instructionsAudio, SoundFile exerciseAudio) {
+  public BreathMirroring(SoundFile instructionsAudio, SoundFile exerciseAudio, TreeMap<Long, Output> instructionsTiming) {
     this.instructionsAudio = instructionsAudio;
     this.exerciseAudio = exerciseAudio;
+    this.instructionsTiming = instructionsTiming;
   }
 
   SoundFile instructionsAudio;
   SoundFile exerciseAudio;
+  TreeMap<Long, Output> instructionsTiming;
 
   // String instructionsAudioPath =  "Breathing-1-instructions.mp3";
   // String exerciseAudioPath =  "Breathing-1-exercise.mp3";
@@ -40,17 +42,73 @@ class BreathMirroring implements Interaction {
   StateMachineRunner<Measurement> runner;
 
   State<Measurement> instructionsState = new State<Measurement>() {
+      long startTime;
+      long runTime(long current) { return startTime > 0 ? current - startTime : 0; }
+      TreeMap<Long, Output> timings = instructionsTiming;
+      StateMachineRunner<Measurement> internal;
+
+      // Internal states for the instructions
+      State<Measurement> preInflate = new State<Measurement>() {
+          public void enter(Measurement in) {}
+          public State<Measurement> run(Measurement in) {
+            boolean done = adjustPressureTo(GOAL_PRESSURE, in);
+            if (runTime(in.timeMs) < 2000) {
+              return this;
+            } else {
+              return instructions;
+            }
+          }
+          public void exit() {}
+        };
+      State<Measurement> instructions = new State<Measurement>() {
+          public void enter(Measurement in) {
+            timings.put(2000l, new Output().set1(100));
+            timings.put(3000l, new Output().set1(-35));
+            timings.put(7000l, new Output());
+          }
+          public State<Measurement> run(Measurement in) {
+            Map.Entry<Long, Output> entry = timings.lowerEntry(runTime(in.timeMs));
+            if (entry == null) {
+              // Nothing to do, state in this state
+              return this;
+            } else if (timings.lastKey() == entry.getKey()) {
+              // This is the last entry, so we change state
+              return postInflate;
+            } else {
+              // Run entry "effect"
+              sendOutputValues(entry.getValue());
+              return this;
+            }
+          }
+          public void exit() {}
+        };
+      State<Measurement> postInflate = new State<Measurement>() {
+          public void enter(Measurement in) {}
+          public State<Measurement> run(Measurement in) {
+            boolean done = adjustPressureTo(GOAL_PRESSURE, in);
+            if (done && !instructionsAudio.isPlaying()) {
+              return null;
+            } else {
+              return this;
+            }
+          }
+          public void exit() {}
+        };
+
       public void enter(Measurement in) {
         myTextarea2.setText("Follow Breathing Interaction");
         instructionsAudio.play();
+        startTime = in.timeMs;
+        // Initialize internal state machine
+        internal = new StateMachineRunner<Measurement>(preInflate, in);
       }
       public State<Measurement> run(Measurement in) {
         // We actually want actually do some interaction here
-        boolean done = adjustPressureTo(GOAL_PRESSURE, in);
-        if (done && !instructionsAudio.isPlaying()) {
-          return measureState;
-        } else {
+        if (internal.isRunning()) {
+          internal.run(in);
           return this;
+        } else {
+          return measureState;
         }
       }
       public void exit() {}

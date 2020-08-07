@@ -26,4 +26,8 @@ class StateMachineRunner<Tin> {
       }
     }
   }
+
+  public boolean isRunning() {
+    return currentState != null;
+  }
 }
