@@ -1,3 +1,5 @@
+import java.util.function.*;
+
 public interface Interaction {
   public void prepare(Measurement initialState, ControlP5 cp5);
 
@@ -45,6 +47,14 @@ class Output {
   public float pressure4;
   public float pressure5;
 
+  public Output() {
+    this(0.0);
+  }
+
+  public Output(float all) {
+    this(all, all, all, all, all);
+  }
+
   public Output(float pressure1, float pressure2, float pressure3, float pressure4, float pressure5) {
     this.pressure1 = pressure1;
     this.pressure2 = pressure2;
@@ -71,4 +81,17 @@ class Output {
                       this.pressure5 + o.pressure5
                       );
   }
+
+  public Output setAll(float v) { return set1(v).set2(v).set3(v).set4(v).set5(v); }
+  public Output set1(float v) { pressure1 = v; return this; }
+  public Output set2(float v) { pressure2 = v; return this; }
+  public Output set3(float v) { pressure3 = v; return this; }
+  public Output set4(float v) { pressure4 = v; return this; }
+  public Output set5(float v) { pressure5 = v; return this; }
+
+  public Output map1(Function<Float, Float> f) { return set1(f.apply(pressure1)); }
+  public Output map2(Function<Float, Float> f) { return set2(f.apply(pressure2)); }
+  public Output map3(Function<Float, Float> f) { return set3(f.apply(pressure3)); }
+  public Output map4(Function<Float, Float> f) { return set4(f.apply(pressure4)); }
+  public Output map5(Function<Float, Float> f) { return set5(f.apply(pressure5)); }
 }

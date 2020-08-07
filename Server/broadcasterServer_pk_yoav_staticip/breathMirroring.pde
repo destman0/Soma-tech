@@ -1,13 +1,3 @@
-enum FollowInteractionState {
-  Stopped,
-  Setup,
-  StartAudio,
-  Measure,
-  Phase,
-  AntiPhase,
-  Completed
-}
-
 class BreathMirroring implements Interaction {
 
   public BreathMirroring(SoundFile instructionsAudio, SoundFile exerciseAudio) {
@@ -28,8 +18,6 @@ class BreathMirroring implements Interaction {
   float GOAL_TOLERANCE = 20;
   long MEASUREMENT_PHASE_TIME = 1 * 60 * 1000;
 
-  FollowInteractionState followInteractionState = FollowInteractionState.Stopped;
-
   long startTimeMs = 0l;
 
 
@@ -40,7 +28,7 @@ class BreathMirroring implements Interaction {
   public String buttonName = "Breathing Mirroring";
 
   public void prepare(Measurement initial, ControlP5 cp5) {
-    followInteractionState = FollowInteractionState.Stopped;
+    runner = new StateMachineRunner<Measurement>(instructionsState, initial);
   }
 
   public void teardown(ControlP5 cp5) {
@@ -49,66 +37,85 @@ class BreathMirroring implements Interaction {
     exerciseAudio.stop();
   }
 
-  public Output run(Measurement in) {
-    switch (followInteractionState) {
-    case Stopped:
-      myTextarea2.setText("Follow Breathing Interaction");
-      instructionsAudio.play();
-      followInteractionState = FollowInteractionState.Setup;
-      return null;
-    case Setup:
-      myTextarea2.setText("Follow Breathing Interaction: Inflating");
-      boolean done = adjustPressureTo(GOAL_PRESSURE, in);
-      if (done && !instructionsAudio.isPlaying()) {
-        setupFollowInteraction();
-        followInteractionState = FollowInteractionState.StartAudio;
+  StateMachineRunner<Measurement> runner;
+
+  State<Measurement> instructionsState = new State<Measurement>() {
+      public void enter(Measurement in) {
+        myTextarea2.setText("Follow Breathing Interaction");
+        instructionsAudio.play();
       }
-      return null;
-    case StartAudio:
-      exerciseAudio.play();
-      followInteractionState = FollowInteractionState.Measure;
-      return null;
-    case Measure:
-      stopAllPillows();
-      long elapsedTime = in.timeMs - startTimeMs;
-      long remainingTime = MEASUREMENT_PHASE_TIME - elapsedTime;
-      myTextarea2.setText("Follow Breathing Interaction: Follow the instructions\n");
-      if (instructionsAudio.isPlaying()) {
-        measurements.add(in);
-      } else {
-        followInteractionState = FollowInteractionState.Phase;
+      public State<Measurement> run(Measurement in) {
+        // We actually want actually do some interaction here
+        boolean done = adjustPressureTo(GOAL_PRESSURE, in);
+        if (done && !instructionsAudio.isPlaying()) {
+          return measureState;
+        } else {
+          return this;
+        }
+      }
+      public void exit() {}
+    };
+
+  State<Measurement> measureState = new State<Measurement>() {
+      public void enter(Measurement in) {
+        startTimeMs = in.timeMs;
+        measurements = new ArrayList(1000);
+        stopAllPillows();
+        exerciseAudio.play();
+        myTextarea2.setText("Follow Breathing Interaction: Follow the instructions\n");
+      }
+      public State<Measurement> run(Measurement in) {
+        long elapsedTime = in.timeMs - startTimeMs;
+        if (exerciseAudio.isPlaying()) {
+          measurements.add(in);
+          return this;
+        } else {
+          return replayState;
+        }
+      }
+      public void exit() {
         replayValues = calculateReplayValues(measurements);
         replayIndex = 0;
+        println("End Measure");
       }
-      return null;
-    case Phase:
-      myTextarea2.setText("Follow Breathing Interaction:\n Breathe naturally, feel your breath being replayed.");
-      if (replayIndex < replayValues.size()) {
-        println("Reply index=" + replayIndex + "Values: " + replayValues.get(replayIndex));
-        Output outValues = replayValues.get(replayIndex);
-        replayIndex++;
-        return outValues;
-      } else {
-        followInteractionState = FollowInteractionState.Completed;
+    };
+
+  State<Measurement> replayState = new State<Measurement>() {
+      public void enter(Measurement in) {
+        myTextarea2.setText("Follow Breathing Interaction:\n Breathe naturally, feel your breath being replayed.");
+      }
+      public State<Measurement> run(Measurement in) {
+        if (replayIndex < replayValues.size()) {
+          Output outValues = replayValues.get(replayIndex);
+          replayIndex++;
+          sendOutputValues(outValues);
+          return this;
+        } else {
+          return outroState;
+        }
+      }
+      public void exit() {}
+    };
+
+  State<Measurement> outroState = new State<Measurement>() {
+      long startTime;
+      public void enter(Measurement in) {
+        myTextarea2.setText("Done!");
+        startTime = in.timeMs;
+      }
+      public State<Measurement> run(Measurement in) {
+        stopAllPillows();
+        if (in.timeMs - startTime < 1000) {
+          return this;
+        }
         return null;
       }
-    case AntiPhase:
-      return null;
-    case Completed:
-      stopAllPillows();
-      myTextarea2.setText("Done!");
-      return null;
-    }
+      public void exit() {}
+    };
+
+  public Output run(Measurement in) {
+    runner.run(in);
     return null;
-  }
-
-  void initializeFollowBreathing() {
-    followInteractionState = FollowInteractionState.Stopped;
-    measurements = new ArrayList(1000);
-  }
-
-  void setupFollowInteraction() {
-    startTimeMs = System.currentTimeMillis();
   }
 
   boolean adjustPressureTo(float goal, Measurement values) {
@@ -161,7 +168,6 @@ class BreathMirroring implements Interaction {
                             diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure5, c.pressure5))
       ));
     }
-    result.addAll(result);
     return result;
   }
 

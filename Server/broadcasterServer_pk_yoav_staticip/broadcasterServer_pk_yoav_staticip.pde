@@ -184,6 +184,8 @@ Interaction hrvBreathing;
 Interaction squareBreathing ;
 Interaction deflateAll;
 Interaction stopAll;
+Interaction explosive1;
+Interaction explosive2;
 
 void setup() {
   oscP5 = new OscP5(this, myListeningPort);
@@ -196,6 +198,17 @@ void setup() {
   noStroke();
   cp5 = new ControlP5(this);
 
+  // cp5.addButton("Explosive_Pa_500")
+  //   .setValue(0)
+  //   .setPosition(100, 0)
+  //   .setSize(300,45)
+  //   ;
+
+  // cp5.addButton("Explosive_Pa_200")
+  //   .setValue(0)
+  //   .setPosition(300, 0)
+  //   .setSize(300,45)
+  //   ;
 
   cp5.addButton("Breath_Mirroring_1")
      .setValue(0)
@@ -369,6 +382,9 @@ void setup() {
   deflateAll = new DeflateAll();
 
   stopAll = new StopAll();
+
+//   explosive1 = new ExplosivePaInteraction(500);
+//   explosive2 = new ExplosivePaInteraction(200);
 }
 
 Measurement currentMeasurement;
@@ -407,6 +423,14 @@ public void Deflate_All_Pillows() {
 
 public void Stop_All_Pillows() {
   selectInteraction(stopAll);
+}
+
+public void Explosive_Pa_500() {
+  selectInteraction(explosive1);
+}
+
+public void Explosive_Pa_200() {
+  selectInteraction(explosive2);
 }
 
 Measurement readInputs() {
