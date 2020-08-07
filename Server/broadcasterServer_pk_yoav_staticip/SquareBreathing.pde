@@ -40,6 +40,11 @@ class SquareBreathing implements Interaction {
     cp5.getController("Inflation_Rate").setVisible(true);
     cp5.getController("Deflation_Rate").setVisible(true);
     cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
+    
+    cp5.getController("1st_number_of_counts").setVisible(true);
+    cp5.getController("2nd_number_of_counts").setVisible(true);
+    cp5.getController("3rd_number_of_counts").setVisible(true);
+    cp5.getController("4th_number_of_counts").setVisible(true);
   }
 
   public Output run(Measurement inputs) {
@@ -128,15 +133,16 @@ class SquareBreathing implements Interaction {
           remainingTimeForPhaseSec = currentRemainingTimeForPhaseSec;
 
         // That is debugging information, please unqote, if the interaction goes somewhere....
-        /*
+        
           myTextarea2.setText("Start time:    "+(interactionstarttime) + " \n\n" +
-          "Current time:    "+(interactioncurrenttime)+ " \n\n" +
-          "Delta:    "+(interactioncurrenttime - interactionstarttime) + " \n\n" +
-          "Phase:    "+((interactioncurrenttime - interactionstarttime)/phasedur) +" \n\n" +
+          //"Current time:    "+(interactioncurrenttime)+ " \n\n" +
+          //"Delta:    "+(interactioncurrenttime - interactionstarttime) + " \n\n" +
+          //"Phase:    "+((interactioncurrenttime - interactionstarttime)/phasedur) +" \n\n" +
           "Cycle:    "+(current_cycle) + " \n\n" +
-          "Duration Chapter:   " +(duration_chapter)+ " \n\n" +
-          "Duration:    " + (phasedur));
-          */
+          "Duration Chapter:   " +(duration_chapter)+ " \n\n" 
+         // "Duration:    " + (phasedur)
+         );
+          
         }
 
         else{
@@ -170,6 +176,11 @@ class SquareBreathing implements Interaction {
     cp5.getController("Deflation_Rate").setVisible(false);
     cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
     
+    cp5.getController("1st_number_of_counts").setVisible(false);
+    cp5.getController("2nd_number_of_counts").setVisible(false);
+    cp5.getController("3rd_number_of_counts").setVisible(false);
+    cp5.getController("4th_number_of_counts").setVisible(false);
+    
     for (SoundFile s : countingAudio) {
       s.stop();
     }
@@ -184,13 +195,13 @@ class SquareBreathing implements Interaction {
     switch(chapter)
     {
     case 0:
-      return 3000;
+      return int(cp5.getController("1st_number_of_counts").getValue()*1000);
     case 1:
-      return 5000;
+      return int(cp5.getController("2nd_number_of_counts").getValue()*1000);
     case 2:
-      return 7000;
+      return int(cp5.getController("3rd_number_of_counts").getValue()*1000);
     case 3:
-      return 9000;
+      return int(cp5.getController("4th_number_of_counts").getValue()*1000);
     default:
       return 3000;
     }
@@ -200,6 +211,7 @@ class SquareBreathing implements Interaction {
     long endTime = startTime + (( phase + 1 ) * phaseDuration);
     long remainingTimeForPhaseMs = endTime - currentTime - 1;
     return max((int)remainingTimeForPhaseMs / 1000, (int)0); 
+   
   }
 
   private void playCountAudio(int count) {

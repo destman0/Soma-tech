@@ -162,7 +162,8 @@ String riotPattern= "/0/";
 ControlP5 cp5;
 
 Textarea myTextarea1, myTextarea2;
-Knob myKnobA;
+Knob myKnobA, myKnobB, myKnobC, myKnobD, myKnobE;
+ListBox l;
 
 
 PrintWriter output;
@@ -287,7 +288,7 @@ void setup() {
 
   myTextarea2 = cp5.addTextarea("instructions")
                     .setPosition(950,100)
-                    .setSize(600,600)
+                    .setSize(600,400)
                     .setFont(createFont("arial",50))
                     .setLineHeight(50)
                     .setColor(color(128))
@@ -307,11 +308,65 @@ void setup() {
                .setVisible(false)
                ;                
 
+
+  myKnobB = cp5.addKnob("1st_number_of_counts")
+               .setRange(3,10)
+               .setValue(3)
+               .setPosition(750,600)
+               .setRadius(70)
+               .setNumberOfTickMarks(7)
+               .setTickMarkLength(4)
+               .snapToTickMarks(true)
+               .setDragDirection(Knob.HORIZONTAL)
+               .setVisible(false)
+               ;      
+
+  myKnobC = cp5.addKnob("2nd_number_of_counts")
+               .setRange(3,10)
+               .setValue(4)
+               .setPosition(900,600)
+               .setRadius(70)
+               .setNumberOfTickMarks(7)
+               .setTickMarkLength(4)
+               .snapToTickMarks(true)
+               .setDragDirection(Knob.HORIZONTAL)
+               .setVisible(false)
+               ;  
+               
+  myKnobD = cp5.addKnob("3rd_number_of_counts")
+               .setRange(3,10)
+               .setValue(5)
+               .setPosition(1050,600)
+               .setRadius(70)
+               .setNumberOfTickMarks(7)
+               .setTickMarkLength(4)
+               .snapToTickMarks(true)
+               .setDragDirection(Knob.HORIZONTAL)
+               .setVisible(false)
+               ;  
+
+  myKnobE = cp5.addKnob("4th_number_of_counts")
+               .setRange(3,10)
+               .setValue(6)
+               .setPosition(1200,600)
+               .setRadius(70)
+               .setNumberOfTickMarks(7)
+               .setTickMarkLength(4)
+               .snapToTickMarks(true)
+               .setDragDirection(Knob.HORIZONTAL)
+               .setVisible(false)
+               ;  
+
+
+
+
   cp5.addToggle("in_phase")
      .setPosition(20,100)
      .setSize(50,30)
      .setValue(true)
      ;
+
+
 
   frameRate(60);
 
@@ -735,4 +790,3 @@ void printOSCMessage(OscMessage theOscMessage) {
       }
    println(" ## Ending of message");
 }
-
