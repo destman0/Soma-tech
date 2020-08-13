@@ -162,6 +162,7 @@ String riotPattern= "/0/";
 ControlP5 cp5;
 
 Textarea myTextarea1, myTextarea2;
+Textlabel myTextlabelA, myTextlabelB, myTextlabelC, myTextlabelD, myTextlabelE;
 Knob myKnobA, myKnobB, myKnobC, myKnobD, myKnobE;
 ListBox l;
 
@@ -211,41 +212,41 @@ void setup() {
   //   .setSize(300,45)
   //   ;
 
-  cp5.addButton("Breath_Mirroring_1")
+  cp5.addButton("Fricative_Exhale")
      .setValue(0)
-     .setPosition(100, 50)
-     .setSize(600,90)
+     .setPosition(100, 200)
+     .setSize(300,90)
      ;
 
   cp5.addButton("Square_Breathing")
     .setValue(100)
-    .setPosition(100, 150)
-    .setSize(600,90)
+    .setPosition(100, 350)
+    .setSize(300,90)
     ;
 
-  cp5.addButton("Breath_Mirroring_2")
+  cp5.addButton("Appoggio")
     .setValue(0)
-    .setPosition(100,250)
-    .setSize(600,90)
+    .setPosition(410,350)
+    .setSize(300,90)
     ;
 
   cp5.addButton("Slow_HRV_Breathing")
      .setValue(100)
-     .setPosition(100, 350)
-     .setSize(600,90)
+     .setPosition(410, 200)
+     .setSize(300,90)
      ;
 
     cp5.addButton("Deflate_All_Pillows")
      .setValue(100)
-     .setPosition(100,450)
-     .setSize(600,90)
+     .setPosition(100,600)
+     .setSize(300,90)
      .setColorBackground(0xff008888)
      ;
 
    cp5.addButton("Stop_All_Pillows")
      .setValue(100)
-     .setPosition(100, 550)
-     .setSize(600,90)
+     .setPosition(410, 600)
+     .setSize(300,90)
      //.setColor(cc)
      .setColorBackground(0xff880000)
      ;
@@ -290,8 +291,8 @@ void setup() {
      ;
 
   myTextarea1 = cp5.addTextarea("sensorval")
-                    .setPosition(100, 650)
-                    .setSize(600, 110)
+                    .setPosition(100, 700)
+                    .setSize(610, 80)
                     .setFont(createFont("arial",12))
                     .setLineHeight(11)
                     .setColor(color(128))
@@ -370,8 +371,35 @@ void setup() {
                .setVisible(false)
                ;  
 
+  myTextlabelA = cp5.addTextlabel("label1")
+                    .setText("Breath Scan")
+                    .setPosition(300,10)
+                    .setFont(createFont("Arial", 20))
+                    ;
+                    
+  myTextlabelB = cp5.addTextlabel("label2")
+                    .setText("Soothing Exercises")
+                    .setPosition(300,150)
+                    .setFont(createFont("Arial", 20))
+                    ;
 
+  myTextlabelC = cp5.addTextlabel("label3")
+                    .setText("Uplifting Exercises")
+                    .setPosition(300,300)
+                    .setFont(createFont("Arial", 20))
+                    ;
 
+  myTextlabelD = cp5.addTextlabel("label4")
+                    .setText("Explorative Exercises")
+                    .setPosition(300,450)
+                    .setFont(createFont("Arial", 20))
+                    ;
+
+  myTextlabelE = cp5.addTextlabel("label5")
+                    .setText("Manual Override")
+                    .setPosition(300,570)
+                    .setFont(createFont("Arial", 20))
+                    ;
 
   cp5.addToggle("in_phase")
      .setPosition(20,100)
@@ -473,11 +501,11 @@ void selectInteraction(Interaction newInteraction) {
   }
 }
 
-public void Breath_Mirroring_1() {
+public void Fricative_Exhale() {
   selectInteraction(breathMirroring1);
 }
 
-public void Breath_Mirroring_2() {
+public void Appoggio() {
   selectInteraction(breathMirroring2);
 }
 
@@ -534,12 +562,12 @@ void draw() {
 
   currentMeasurement = readInputs();
 
-  myTextarea1.setText("Pressure in the bit number one:    " + (currentMeasurement.pressure1) + " \n\n"
-      + "Pressure in the bit number two:     " + (currentMeasurement.pressure2) + " \n\n"
-      + "Pressure in the bit number three:   " + (currentMeasurement.pressure3) + "\n\n"
-      + "Pressure in the bit number four:    " + (currentMeasurement.pressure4) + "\n\n"
-      + "Pressure in the bit number five:    " + (currentMeasurement.pressure5) + "\n\n"
-      + "Button state:                       " + buttonStatus
+  myTextarea1.setText("Pressure in the bit number one:    " + (currentMeasurement.pressure1) + " \n"
+      + "Pressure in the bit number two:     " + (currentMeasurement.pressure2) + " \n"
+      + "Pressure in the bit number three:   " + (currentMeasurement.pressure3) + "\n"
+      + "Pressure in the bit number four:    " + (currentMeasurement.pressure4) + "\n"
+      + "Pressure in the bit number five:    " + (currentMeasurement.pressure5) + "\n"
+      //+ "Button state:                       " + buttonStatus
   );
 
   Output output = currentInteraction != null
