@@ -143,6 +143,7 @@ HashMap<String,Object[]> sensorInputs = new HashMap<String,Object[]>();
 HashMap<String,Object[]> actuatorInputs = new HashMap<String,Object[]>();
 
 int buttonStatus = 0;
+float forceSensor = 0.0;
 
 /* listeningPort is the port the server is listening for incoming messages */
 int myListeningPort = 32000;
@@ -188,6 +189,7 @@ Interaction deflateAll;
 Interaction stopAll;
 Interaction explosive1;
 Interaction explosive2;
+Interaction recordAll;
 
 void setup() {
   oscP5 = new OscP5(this, myListeningPort);
@@ -239,17 +241,23 @@ void setup() {
     cp5.addButton("Deflate_All_Pillows")
      .setValue(100)
      .setPosition(100,600)
-     .setSize(300,90)
+     .setSize(190,90)
      .setColorBackground(0xff008888)
      ;
 
    cp5.addButton("Stop_All_Pillows")
      .setValue(100)
-     .setPosition(410, 600)
-     .setSize(300,90)
+     .setPosition(305, 600)
+     .setSize(190,90)
      //.setColor(cc)
      .setColorBackground(0xff880000)
      ;
+
+   cp5.addButton("Record_Only")
+     .setValue(1)
+     .setPosition(510, 600)
+     .setSize(190, 90)
+     .setColorBackground(0xff008888);
 
    cp5.addSlider("Number_of_Cycles")
      .setPosition(20,170)
@@ -497,6 +505,8 @@ void setup() {
 
   stopAll = new StopAll();
 
+  recordAll = new RecordAll();
+
 //   explosive1 = new ExplosivePaInteraction(500);
 //   explosive2 = new ExplosivePaInteraction(200);
 }
@@ -547,6 +557,10 @@ public void Explosive_Pa_200() {
   selectInteraction(explosive2);
 }
 
+public void Record_Only() {
+  selectInteraction(recordAll);
+}
+
 Measurement readInputs() {
   return new Measurement(System.currentTimeMillis(),
                          readFloat("1/pressure", 0.0),
@@ -554,7 +568,8 @@ Measurement readInputs() {
                          readFloat("3/pressure", 0.0),
                          readFloat("4/pressure", 0.0),
                          readFloat("5/pressure", 0.0),
-                         buttonStatus
+                         buttonStatus,
+                         forceSensor
                          );
 }
 
@@ -582,7 +597,8 @@ void draw() {
       + "Pressure in the bit number three:   " + (currentMeasurement.pressure3) + "\n"
       + "Pressure in the bit number four:    " + (currentMeasurement.pressure4) + "\n"
       + "Pressure in the bit number five:    " + (currentMeasurement.pressure5) + "\n"
-      //+ "Button state:                       " + buttonStatus
+      + "Button state:                       " + buttonStatus                   + "\n"
+      + "Force sensor:                       " + forceSensor                    + "\n"
   );
 
   Output output = currentInteraction != null
@@ -629,6 +645,34 @@ class StopAll implements Interaction {
   public void teardown(ControlP5 cp5) {}
 }
 
+class RecordAll implements Interaction {
+  SimpleDateFormat fileNameFormat = new SimpleDateFormat("'recording/pressure'-yyyy-MM-dd'T'HH-mm-ss.'log'");
+  PrintWriter output = null;
+  String fileName = null;
+  public void prepare(Measurement initial, ControlP5 cp5) {
+    if (output != null) {
+      output.close();
+    }
+    fileName = fileNameFormat.format(initial.timeMs);
+    output = createWriter(fileName);
+    output.println(initial.csvHeading());
+    myTextarea2.setText("Recording to " + fileName);
+  }
+
+  public Output run(Measurement inputs) {
+    output.println(inputs.csvLine());
+    return null;
+  }
+
+  public void teardown(ControlP5 cp5) {
+    myTextarea2.setText("Recording ended.");
+    output.flush();
+    output.close();
+    output = null;
+    fileName = null;
+  }
+}
+
 // OSC handling
 void oscEvent(OscMessage theOscMessage) {
   /* check if the address pattern fits any of our patterns */
@@ -655,10 +699,14 @@ void oscEvent(OscMessage theOscMessage) {
    */
    //check if sender is on sensor list (TBD: currently any OSC command is just blindly forwarded to the actuators without checking)
 
-    else if (theOscMessage.addrPattern().contains("/sensor/buttonstate")) {
-      buttonStatus = ((Float)theOscMessage.arguments()[0]).intValue();
-    }
-    else if(theOscMessage.addrPattern().contains("/sensor")){
+  else if (theOscMessage.addrPattern().contains("/sensor/force")) {
+    println("force reading");
+    forceSensor = ((Float)theOscMessage.arguments()[0]);
+  }
+  else if (theOscMessage.addrPattern().contains("/sensor/buttonstate")) {
+    buttonStatus = ((Float)theOscMessage.arguments()[0]).intValue();
+  }
+  else if(theOscMessage.addrPattern().contains("/sensor")){
 
     //add it to a data structure with all known OSC addresses (hashmap: addrPattern, arguments)
     addSensorValuetoHashMap(theOscMessage);
@@ -690,6 +738,8 @@ void oscEvent(OscMessage theOscMessage) {
     overrideTime = millis();
   }
   else{
+    print("Unhandled OSC message");
+    printOSCMessage(theOscMessage);
    // print("## Sending OSC Message directly to Wekinator");
     //printOSCMessage(theOscMessage);
    // trainWekinatorMsg(theOscMessage);
@@ -747,12 +797,6 @@ private String cleanActuatorPattern(OscMessage theOscMessage){
 // /sensor/x becomes /[id]/sensor/x
 void addSensorValuetoHashMap(OscMessage theOscMessage){
   int id = getDeviceId(theOscMessage.netAddress());
-//  if(id == -1)
-//    id = connectSensor(theOscMessage.netAddress().address());
-
-
-
-  //remove the "/sensor" part
   String[] addrComponents = theOscMessage.addrPattern().split("/");
 
   // System.out.println("## PRINTING addrComponents");

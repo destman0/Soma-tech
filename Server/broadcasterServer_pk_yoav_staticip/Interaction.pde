@@ -8,6 +8,8 @@ public interface Interaction {
   public void teardown(ControlP5 cp5);
 }
 
+public static SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSS");
+
 class Measurement {
   public long timeMs;
   public float pressure1;
@@ -16,8 +18,16 @@ class Measurement {
   public float pressure4;
   public float pressure5;
   public int button;
+  public float forceSensor;
 
-  public Measurement(long timeMs, float pressure1, float pressure2, float pressure3, float pressure4, float pressure5, int button) {
+  public Measurement(long  timeMs,
+                     float pressure1,
+                     float pressure2,
+                     float pressure3,
+                     float pressure4,
+                     float pressure5,
+                     int   button,
+                     float forceSensor) {
     this.timeMs = timeMs;
     this.pressure1 = pressure1;
     this.pressure2 = pressure2;
@@ -25,6 +35,7 @@ class Measurement {
     this.pressure4 = pressure4;
     this.pressure5 = pressure5;
     this.button = button;
+    this.forceSensor = forceSensor;
   }
 
   public String toString() {
@@ -35,8 +46,25 @@ class Measurement {
       + "pressure3=" + String.valueOf(pressure3) + ","
       + "pressure4=" + String.valueOf(pressure4) + ","
       + "pressure5=" + String.valueOf(pressure5) + ","
-      + "button=" + String.valueOf(button)
+      + "button=" + String.valueOf(button)       + ","
+      + "forceSensor=" + String.valueOf(forceSensor)
       + ")";
+  }
+
+  public String csvHeading() {
+    return "time, pressure1, pressure2, pressure3, pressure4, pressure5, button, forceSensor";
+  }
+
+  public String csvLine() {
+    return ""
+      + dateFormatter.format(timeMs) + ","
+      + String.valueOf(pressure1) + ","
+      + String.valueOf(pressure2) + ","
+      + String.valueOf(pressure3) + ","
+      + String.valueOf(pressure4) + ","
+      + String.valueOf(pressure5) + ","
+      + String.valueOf(button)       + ","
+      + String.valueOf(forceSensor);
   }
 }
 
