@@ -1,5 +1,8 @@
-
 class HrvBreathing implements Interaction {
+
+  SimpleDateFormat fileNameFormat = new SimpleDateFormat("'recording/hrvBreathing'-yyyy-MM-dd'T'HH-mm-ss.'log'");
+  PrintWriter output = null;
+  String fileName = null;
 
   public HrvBreathing() {}
 
@@ -22,6 +25,13 @@ class HrvBreathing implements Interaction {
     cp5.getController("Inflation_Rate").setVisible(true);
     cp5.getController("Deflation_Rate").setVisible(true);
     cp5.getController("Inhale_or_Exhale_Duration").setVisible(true);
+
+    if (output != null) {
+      output.close();
+    }
+    fileName = fileNameFormat.format(initial.timeMs);
+    output = createWriter(fileName);
+    output.println(initial.csvHeading());
   }
 
   public void teardown(ControlP5 cp5) {
@@ -29,10 +39,17 @@ class HrvBreathing implements Interaction {
     cp5.getController("Inflation_Rate").setVisible(false);
     cp5.getController("Deflation_Rate").setVisible(false);
     cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
+
+    output.flush();
+    output.close();
+    output = null;
+    fileName = null;
   }
 
   public Output run(Measurement input) {
     // +++++++++++++++++++++++++++++++++++Slow HRV breathing++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    output.println(input.csvLine());
+
     slow_breathing_duration = int(cp5.getController("Duration_of_Exercise").getValue());
 
     if (interaction_part==0){
@@ -124,6 +141,7 @@ class HrvBreathing implements Interaction {
       myMessage1 = new OscMessage("/actuator/inflate");
       myMessage1.add(0.0);
       sendToAllActuators(myMessage1);    
+
     }
 
     // Changing values directly from the interaction...
