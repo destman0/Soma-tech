@@ -700,7 +700,6 @@ void oscEvent(OscMessage theOscMessage) {
    //check if sender is on sensor list (TBD: currently any OSC command is just blindly forwarded to the actuators without checking)
 
   else if (theOscMessage.addrPattern().contains("/sensor/force")) {
-    println("force reading");
     forceSensor = ((Float)theOscMessage.arguments()[0]);
   }
   else if (theOscMessage.addrPattern().contains("/sensor/buttonstate")) {
