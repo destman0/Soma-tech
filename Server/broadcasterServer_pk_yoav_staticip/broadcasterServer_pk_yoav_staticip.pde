@@ -449,16 +449,24 @@ void setup() {
   breathing1timings.put(5000l,                  new Output());
   breathing1timings.put(19142l,                 new Output().set1(30));
   breathing1timings.put(27870l,                 new Output().set1(-15));
-  // nice shift... make the pillow vibrate
   breathing1timings.put(35000l,                 new Output());
+  // "You will feel a slight shift"
+  breathing1timings.put(36000l,                 new Output().set1(50));
+  breathing1timings.put(36500l,                 new Output().set1(0));
+  breathing1timings.put(37000l,                 new Output().set1(50));
+  breathing1timings.put(37500l,                 new Output().set1(0));
+  breathing1timings.put(38000l,                 new Output().set1(40));
+  breathing1timings.put(38500l,                 new Output().set1(-30));
+  breathing1timings.put(39500l,                 new Output().set1(0));
+  // "You will feel a slight shift" Ends
   breathing1timings.put(43280l,                 new Output().set1(40));
   breathing1timings.put(46370l,                 new Output().set1(-20));
   breathing1timings.put(53450l,                 new Output());
   breathing1timings.put(68400l,                 new Output().set1(30));
   breathing1timings.put(83600l,                 new Output().set1(-30));
   breathing1timings.put(87200l,                 new Output());
-  breathing1timings.put(90000l,                 new Output());
-  // Too long of a break
+  // Pause
+  breathing1timings.put(91000l,                 new Output());
 
   breathMirroring1 = new BreathMirroring(new SoundFile(this, "audio/breathing-exercise-1-instructions.wav"),
                                          new SoundFile(this, "audio/breathing-exercise-1-exercise.wav"),
@@ -469,16 +477,35 @@ void setup() {
     TreeMap<Long, Output> breathing2timings = new TreeMap();
   //                   Time in file millis,     output values
   breathing2timings.put(5000l,                  new Output());
-  breathing2timings.put(17442l,                 new Output().set1(30));
-  breathing2timings.put(23270l,                 new Output().set1(-15));
-  breathing2timings.put(30000l,                 new Output());
-  breathing2timings.put(39000l,                 new Output().set1(30));
-  breathing2timings.put(45000l,                 new Output().set1(-15));
-  breathing2timings.put(50050l,                 new Output());
-  breathing2timings.put(52500l,                 new Output().set2(30));
-  breathing2timings.put(83600l,                 new Output().set1(-30));
-  breathing2timings.put(87200l,                 new Output());
-  breathing2timings.put(94000l,                 new Output());
+  breathing2timings.put(15442l,                 new Output().set1(30));
+  breathing2timings.put(20270l,                 new Output().set1(-15));
+  breathing2timings.put(25000l,                 new Output());
+  // "You will feel a slight shift"
+  breathing1timings.put(29000l,                 new Output().set1(50));
+  breathing1timings.put(29500l,                 new Output().set1(0));
+  breathing1timings.put(30000l,                 new Output().set1(50));
+  breathing1timings.put(30500l,                 new Output().set1(0));
+  breathing1timings.put(31000l,                 new Output().set1(40));
+  breathing1timings.put(31500l,                 new Output().set1(-30));
+  breathing1timings.put(32500l,                 new Output().set1(0));
+  // "You will feel a slight shift" Ends
+  breathing2timings.put(43800l,                 new Output().set1(30));
+  breathing2timings.put(45900l,                 new Output().set1(-15));
+  breathing2timings.put(47100l,                 new Output());
+  breathing2timings.put(51000l,                 new Output().set2(30));
+  breathing2timings.put(56600l,                 new Output().set2(-30));
+  breathing2timings.put(59000l,                 new Output());
+  // Pa
+  breathing2timings.put(72300l,                 new Output().set2(80));
+  breathing2timings.put(72600l,                 new Output().set2(-80));
+  breathing2timings.put(73200l,                 new Output().set2(0));
+  breathing2timings.put(82000l,                 new Output(30).set2(0));
+  breathing2timings.put(83280l,                 new Output(0).set2(80));
+  breathing2timings.put(83600l,                 new Output(-30).set2(-80));
+  breathing2timings.put(84200l,                 new Output(30).set2(0));
+  breathing2timings.put(85300l,                 new Output(0).set2(80));
+  breathing2timings.put(85600l,                 new Output(-30).set2(-80));
+  breathing2timings.put(86300l,                 new Output());
 
   breathMirroring2 = new BreathMirroring(new SoundFile(this, "audio/mirror-breathing-2-instructions.wav"),
                                          new SoundFile(this, "audio/mirror-breathing-2-exercise-v2.wav"),
