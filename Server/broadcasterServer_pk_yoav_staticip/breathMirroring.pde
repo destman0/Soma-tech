@@ -2,14 +2,20 @@ class BreathMirroring implements Interaction {
 
   public BreathMirroring(SoundFile instructionsAudio,
                          SoundFile exerciseAudio,
+                         SoundFile beforeReply,
+                         SoundFile endAudio,
                          TreeMap<Long, Output> instructionsTiming) {
     this.instructionsAudio = instructionsAudio;
     this.exerciseAudio = exerciseAudio;
     this.instructionsTiming = instructionsTiming;
+    this.beforeReplyAudio = beforeReply;
+    this.endAudio = endAudio;
   }
 
   SoundFile instructionsAudio;
   SoundFile exerciseAudio;
+  SoundFile beforeReplyAudio;
+  SoundFile endAudio;
   TreeMap<Long, Output> instructionsTiming;
 
   // String instructionsAudioPath =  "Breathing-1-instructions.mp3";
@@ -131,13 +137,31 @@ class BreathMirroring implements Interaction {
           return this;
         } else {
           // Return change to "replayState", exit will be called
-          return replayState;
+          return beforeReply;
         }
       }
       public void exit() {
         replayValues = calculateReplayValues(measurements);
         replayIndex = 0;
         println("End Measure");
+      }
+    };
+
+  State<Measurement> beforeReply = new State<Measurement>() {
+      public void enter(Measurement in) {
+        beforeReplyAudio.play();
+      }
+
+      public State<Measurement> run(Measurement in) {
+        if (beforeReplyAudio.isPlaying()) {
+          return this;
+        } else {
+          return replayState;
+        }
+      }
+
+      public void exit() {
+        beforeReplyAudio.stop();
       }
     };
 
@@ -163,16 +187,19 @@ class BreathMirroring implements Interaction {
       public void enter(Measurement in) {
         myTextarea2.setText("Done!");
         startTime = in.timeMs;
+        endAudio.play();
       }
       public State<Measurement> run(Measurement in) {
         stopAllPillows();
-        if (in.timeMs - startTime < 1000) {
+        if (in.timeMs - startTime < 1000 || endAudio.isPlaying()) {
           return this;
         }
         // Returning "null" as next state will stop the state machine runner
         return null;
       }
-      public void exit() {}
+      public void exit() {
+        endAudio.stop();
+      }
     };
 
   public Output run(Measurement in) {

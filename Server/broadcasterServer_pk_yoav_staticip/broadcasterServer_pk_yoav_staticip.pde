@@ -449,6 +449,7 @@ void setup() {
   breathing1timings.put(5000l,                  new Output());
   breathing1timings.put(19142l,                 new Output().set1(30));
   breathing1timings.put(27870l,                 new Output().set1(-15));
+  // nice shift... make the pillow vibrate
   breathing1timings.put(35000l,                 new Output());
   breathing1timings.put(43280l,                 new Output().set1(40));
   breathing1timings.put(46370l,                 new Output().set1(-20));
@@ -456,28 +457,33 @@ void setup() {
   breathing1timings.put(68400l,                 new Output().set1(30));
   breathing1timings.put(83600l,                 new Output().set1(-30));
   breathing1timings.put(87200l,                 new Output());
-  breathing1timings.put(94000l,                 new Output());
-  
+  breathing1timings.put(90000l,                 new Output());
+  // Too long of a break
+
+  breathMirroring1 = new BreathMirroring(new SoundFile(this, "audio/breathing-exercise-1-instructions.wav"),
+                                         new SoundFile(this, "audio/breathing-exercise-1-exercise.wav"),
+                                         new SoundFile(this, "audio/and-now-your-breathing.wav"),
+                                         new SoundFile(this, "audio/and-breath-in-normally-pavel.wav"),
+                                         breathing1timings);
+
     TreeMap<Long, Output> breathing2timings = new TreeMap();
   //                   Time in file millis,     output values
   breathing2timings.put(5000l,                  new Output());
-  breathing2timings.put(19142l,                 new Output().set1(30));
-  breathing2timings.put(27870l,                 new Output().set1(-15));
-  breathing2timings.put(35000l,                 new Output());
-  breathing2timings.put(43280l,                 new Output().set1(40));
-  breathing2timings.put(46370l,                 new Output().set1(-20));
-  breathing2timings.put(53450l,                 new Output());
-  breathing2timings.put(68400l,                 new Output().set1(30));
+  breathing2timings.put(17442l,                 new Output().set1(30));
+  breathing2timings.put(23270l,                 new Output().set1(-15));
+  breathing2timings.put(30000l,                 new Output());
+  breathing2timings.put(39000l,                 new Output().set1(30));
+  breathing2timings.put(45000l,                 new Output().set1(-15));
+  breathing2timings.put(50050l,                 new Output());
+  breathing2timings.put(52500l,                 new Output().set2(30));
   breathing2timings.put(83600l,                 new Output().set1(-30));
   breathing2timings.put(87200l,                 new Output());
   breathing2timings.put(94000l,                 new Output());
-  
-  breathMirroring1 = new BreathMirroring(new SoundFile(this, "audio/breathing-exercise-1-instructions.wav"),
-                                         new SoundFile(this, "audio/breathing-exercise-1-exercise.wav"),
-                                         breathing1timings);
 
   breathMirroring2 = new BreathMirroring(new SoundFile(this, "audio/mirror-breathing-2-instructions.wav"),
                                          new SoundFile(this, "audio/mirror-breathing-2-exercise-v2.wav"),
+                                         new SoundFile(this, "audio/and-now-your-breathing.wav"),
+                                         new SoundFile(this, "audio/and-breath-in-normally-pavel.wav"),
                                          breathing2timings);
 
   hrvBreathing = new HrvBreathing();
