@@ -3,8 +3,17 @@ class HrvBreathing implements Interaction {
   SimpleDateFormat fileNameFormat = new SimpleDateFormat("'recording/hrvBreathing'-yyyy-MM-dd'T'HH-mm-ss.'log'");
   PrintWriter output = null;
   String fileName = null;
+  SoundFile instructionsAudio;
+  boolean recordInputs;
 
-  public HrvBreathing() {}
+  public HrvBreathing(SoundFile instructions, boolean record) {
+    this.instructionsAudio = instructions;
+    this.recordInputs = record;
+  }
+
+  public HrvBreathing(SoundFile instructions) {
+    this(instructions, false);
+  }
 
   private ControlP5 cp5;
   private long interactionstarttime;
@@ -30,8 +39,10 @@ class HrvBreathing implements Interaction {
       output.close();
     }
     fileName = fileNameFormat.format(initial.timeMs);
-    output = createWriter(fileName);
-    output.println(initial.csvHeading());
+    if (recordInputs) {
+      output = createWriter(fileName);
+      output.println(initial.csvHeading());
+    }
   }
 
   public void teardown(ControlP5 cp5) {
@@ -40,27 +51,32 @@ class HrvBreathing implements Interaction {
     cp5.getController("Deflation_Rate").setVisible(false);
     cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
 
-    output.flush();
-    output.close();
-    output = null;
-    fileName = null;
+    if (recordInputs) {
+      output.flush();
+      output.close();
+      output = null;
+      fileName = null;
+    }
   }
 
   public Output run(Measurement input) {
     // +++++++++++++++++++++++++++++++++++Slow HRV breathing++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    output.println(input.csvLine());
+    if (recordInputs) {
+      output.println(input.csvLine());
+    }
 
     slow_breathing_duration = int(cp5.getController("Duration_of_Exercise").getValue());
 
     if (interaction_part==0){
       if(interactionstarted==false){
-        interactionstarttime = System.currentTimeMillis();
+        interactionstarttime = input.timeMs;
         interactionstarted = true;
+        instructionsAudio.play();
       }  
 
-      interactioncurrenttime = System.currentTimeMillis();  
+      interactioncurrenttime = input.timeMs;  
 
-      if ((interactioncurrenttime - interactionstarttime)<10000){
+      if ((interactioncurrenttime - interactionstarttime)<10000 || instructionsAudio.isPlaying()){
         myTextarea2.setText("In this interaction we would like you to do your everyday latop activities, while wearing the artefact");  
         OscMessage myMessage1;
         myMessage1 = new OscMessage("/actuator/inflate");
