@@ -448,7 +448,7 @@ void setup() {
   //                   Time in file millis,     output values
   breathing1timings.put(5000l,                  new Output());
   breathing1timings.put(19142l,                 new Output().set1(30));
-  breathing1timings.put(27870l,                 new Output().set1(-15));
+  breathing1timings.put(27870l,                 new Output().set1(-30));
   breathing1timings.put(35000l,                 new Output());
   // "You will feel a slight shift"
   breathing1timings.put(36000l,                 new Output().set1(50));
@@ -456,11 +456,11 @@ void setup() {
   breathing1timings.put(37000l,                 new Output().set1(50));
   breathing1timings.put(37500l,                 new Output().set1(0));
   breathing1timings.put(38000l,                 new Output().set1(40));
-  breathing1timings.put(38500l,                 new Output().set1(-30));
+  breathing1timings.put(38500l,                 new Output().set1(-40));
   breathing1timings.put(39500l,                 new Output().set1(0));
   // "You will feel a slight shift" Ends
   breathing1timings.put(43280l,                 new Output().set1(40));
-  breathing1timings.put(46370l,                 new Output().set1(-20));
+  breathing1timings.put(46370l,                 new Output().set1(-40));
   breathing1timings.put(53450l,                 new Output());
   breathing1timings.put(68400l,                 new Output().set1(30));
   breathing1timings.put(83600l,                 new Output().set1(-30));
@@ -474,38 +474,52 @@ void setup() {
                                          new SoundFile(this, "audio/and-breath-in-normally-pavel.wav"),
                                          breathing1timings);
 
-    TreeMap<Long, Output> breathing2timings = new TreeMap();
+  TreeMap<Long, Output> breathing2timings = new TreeMap();
   //                   Time in file millis,     output values
   breathing2timings.put(5000l,                  new Output());
-  breathing2timings.put(15442l,                 new Output().set1(30));
-  breathing2timings.put(20270l,                 new Output().set1(-15));
+  breathing2timings.put(15442l,                 new Output().set1(30)); // "Please make sure that one..."
+  breathing2timings.put(20270l,                 new Output().set1(-30));
   breathing2timings.put(25000l,                 new Output());
   // "You will feel a slight shift"
-  breathing1timings.put(29000l,                 new Output().set1(50));
-  breathing1timings.put(29500l,                 new Output().set1(0));
-  breathing1timings.put(30000l,                 new Output().set1(50));
-  breathing1timings.put(30500l,                 new Output().set1(0));
-  breathing1timings.put(31000l,                 new Output().set1(40));
-  breathing1timings.put(31500l,                 new Output().set1(-30));
-  breathing1timings.put(32500l,                 new Output().set1(0));
+  shiftTimingEffect(29200l, breathing2timings);
+  // "Where you will feel the expansion"
+  breathing2timings.put(37660l,                 new Output().set1(30)); // "Please make sure that one..."
+  breathing2timings.put(37660l + 1000l,         new Output().set1(-30));
+  breathing2timings.put(37660l + 2000l,         new Output().set1(0));
   // "You will feel a slight shift" Ends
   breathing2timings.put(43800l,                 new Output().set1(30));
-  breathing2timings.put(45900l,                 new Output().set1(-15));
+  breathing2timings.put(45900l,                 new Output().set1(-30));
   breathing2timings.put(47100l,                 new Output());
   breathing2timings.put(51000l,                 new Output().set2(30));
   breathing2timings.put(56600l,                 new Output().set2(-30));
   breathing2timings.put(59000l,                 new Output());
   // Pa
-  breathing2timings.put(72300l,                 new Output().set2(80));
-  breathing2timings.put(72600l,                 new Output().set2(-80));
-  breathing2timings.put(73200l,                 new Output().set2(0));
-  breathing2timings.put(82000l,                 new Output(30).set2(0));
-  breathing2timings.put(83280l,                 new Output(0).set2(80));
-  breathing2timings.put(83600l,                 new Output(-30).set2(-80));
-  breathing2timings.put(84200l,                 new Output(30).set2(0));
-  breathing2timings.put(85300l,                 new Output(0).set2(80));
-  breathing2timings.put(85600l,                 new Output(-30).set2(-80));
-  breathing2timings.put(86300l,                 new Output());
+  // "Let's try it now"
+  breathing2timings.put(72350l,                 new Output().set2(80)); // Pa
+  breathing2timings.put(72450l,                 new Output().set2(0));
+  breathing2timings.put(72500l,                 new Output().set2(80));
+  breathing2timings.put(72750l,                 new Output().set2(-80));
+  breathing2timings.put(73300l,                 new Output().set2(0));
+
+  paTimingEffect(82000l, breathing2timings);
+  paTimingEffect(84200l, breathing2timings);
+  paTimingEffect(86200l, breathing2timings);
+  breathing2timings.put(88200l,                 new Output());
+  breathing2timings.put(93200l,                 new Output().set1(20).set2(20)); // "... focus on breathing into both hands"
+  breathing2timings.put(94500l,                 new Output().set1(-20).set2(-20)); // "... focus on breathing into both hands"
+  breathing2timings.put(95500l,                 new Output().set1(0).set2(30)); // " one on your rib cage"
+  breathing2timings.put(95500l,                 new Output().set1(0).set2(30)); // " one on your rib cage"
+  breathing2timings.put(96500l,                 new Output().set1(0).set2(-30)); // " one on your rib cage"
+  breathing2timings.put(97800l,                 new Output().set1(30).set2(0)); // " one where our lower ..."
+  breathing2timings.put(98800l,                 new Output().set1(-30).set2(0));
+  breathing2timings.put(99800l,                 new Output());
+
+  paTimingEffect(130390l - 1280l, breathing2timings);  // Sshhh
+  paTimingEffect(132410l - 1280l, breathing2timings);
+  paTimingEffect(134300l - 1280l, breathing2timings);
+  paTimingEffect(136050l - 1280l, breathing2timings);
+
+  breathing2timings.put(148200l,                new Output());
 
   breathMirroring2 = new BreathMirroring(new SoundFile(this, "audio/mirror-breathing-2-instructions.wav"),
                                          new SoundFile(this, "audio/mirror-breathing-2-exercise-v2.wav"),
@@ -548,6 +562,23 @@ Measurement currentMeasurement;
 
 
 Interaction currentInteraction = null;
+
+void shiftTimingEffect(long start, TreeMap<Long, Output> timings) {
+  timings.put(start,                 new Output().set1(50));
+  timings.put(start + 500l,          new Output().set1(30));
+  timings.put(start + 1000l,         new Output().set1(50));
+  timings.put(start + 1500l,         new Output().set1(30));
+  timings.put(start + 1900l,         new Output().set1(40));
+  timings.put(start + 2400l,         new Output().set1(-60));
+  timings.put(start + 3500l,         new Output().set1(0));
+}
+
+void paTimingEffect(long start, TreeMap<Long, Output> timings) {
+  timings.put(start,                 new Output(30).set2(0)); // Inhale
+  timings.put(start + 1280l,         new Output(0).set2(80)); // PA!
+  timings.put(start + 1600l,         new Output(-50).set2(-80)); // release
+  timings.put(start + 2100l,         new Output(0)); // release
+}
 
 void selectInteraction(Interaction newInteraction) {
   if (newInteraction != null && newInteraction != currentInteraction) {

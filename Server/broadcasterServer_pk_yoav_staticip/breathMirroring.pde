@@ -48,8 +48,7 @@ class BreathMirroring implements Interaction {
 
   // This one is complex because it has an internal state machine.
   State<Measurement> instructionsState = new State<Measurement>() {
-      long startTime;
-      long runTime(long current) { return startTime > 0 ? current - startTime : 0; }
+      long position() { return (long) round(instructionsAudio.position() * 1000.0); }
       TreeMap<Long, Output> timings;
       StateMachineRunner<Measurement> internal;
 
@@ -59,7 +58,7 @@ class BreathMirroring implements Interaction {
           public State<Measurement> run(Measurement in) {
             boolean done = adjustPressureTo(1040, in);
             long instructionsStart = timings.size() > 0 ? timings.firstKey() : 5000;
-            if (runTime(in.timeMs) < instructionsStart) {
+            if (position() < instructionsStart) {
               return this;
             } else {
               return instructions;
@@ -70,7 +69,7 @@ class BreathMirroring implements Interaction {
       State<Measurement> instructions = new State<Measurement>() {
           public void enter(Measurement in) {}
           public State<Measurement> run(Measurement in) {
-            Map.Entry<Long, Output> entry = timings.lowerEntry(runTime(in.timeMs));
+            Map.Entry<Long, Output> entry = timings.lowerEntry(position());
             if (entry == null) {
               // Nothing to do, state in this state
               return this;
@@ -101,7 +100,6 @@ class BreathMirroring implements Interaction {
       public void enter(Measurement in) {
         myTextarea2.setText("Follow Breathing Interaction");
         instructionsAudio.play();
-        startTime = in.timeMs;
         timings = instructionsTiming;
         // Initialize internal state machine
         internal = new StateMachineRunner<Measurement>(preInflate, in);
