@@ -4,6 +4,17 @@ interface State<Tin> {
   public void exit();
 }
 
+abstract class MeasurementState implements State<Measurement> {
+    long startTimeMs;
+    long stateTime(Measurement in) {
+        return in.timeMs - startTimeMs;
+    }
+    public void enter(Measurement in) {
+        startTimeMs = in.timeMs;
+    }
+    public void exit() {}
+}
+
 class StateMachineRunner<Tin> {
   private State<Tin> currentState;
   StateMachineRunner(State<Tin> initialState, Tin initialEvent) {
@@ -30,4 +41,27 @@ class StateMachineRunner<Tin> {
   public boolean isRunning() {
     return currentState != null;
   }
+
+  public void stop() {
+      currentState = null;
+  }
+}
+
+public State<Measurement> fromTimings(final TreeMap<Long, Output> timings, final State<Measurement> nextState) {
+    return new MeasurementState() {
+        public State<Measurement> run(Measurement in) {
+            Map.Entry<Long, Output> entry = timings.lowerEntry(stateTime(in));
+            if (entry == null) {
+                // Nothing to do, stay in this state
+                return this;
+            } else if (timings.lastKey() == entry.getKey()) {
+                // This is the last entry, so we change state
+                return nextState;
+            } else {
+                // Run entry "effect"
+                sendOutputValues(entry.getValue());
+                return this;
+            }
+        }
+    };
 }
