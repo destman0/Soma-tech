@@ -534,7 +534,7 @@ void setup() {
                                          new SoundFile(this, "audio/and-breath-in-normally-pavel.wav"),
                                          breathing2timings);
 
-  hrvBreathing = new HrvBreathing(new SoundFile(this, "audio/hrv-instructions.wav"));
+  hrvBreathing = new HrvBreathing(new SoundFile(this, "audio/hrv-instructions.wav"), true);
 
   ArrayList<SoundFile> countAudioFiles = new ArrayList();
   countAudioFiles.add(new SoundFile(this, "audio/one.wav"));
