@@ -190,6 +190,7 @@ Interaction stopAll;
 Interaction explosive1;
 Interaction explosive2;
 Interaction recordAll;
+Interaction sectionBreathing;
 
 void setup() {
   oscP5 = new OscP5(this, myListeningPort);
@@ -237,6 +238,12 @@ void setup() {
      .setPosition(410, 200)
      .setSize(300,90)
      ;
+
+  cp5.addButton("Step_Breathing")
+      .setValue(100)
+      .setPosition(100, 500)
+      .setSize(300,90)
+      ;
 
     cp5.addButton("Deflate_All_Pillows")
      .setValue(100)
@@ -554,6 +561,8 @@ void setup() {
 
   recordAll = new RecordAll();
 
+  sectionBreathing = new SectionBreathingInteraction();
+
 //   explosive1 = new ExplosivePaInteraction(500);
 //   explosive2 = new ExplosivePaInteraction(200);
 }
@@ -601,8 +610,13 @@ public void Appoggio() {
 public void Slow_HRV_Breathing() {
   selectInteraction(hrvBreathing);
 }
+
 public void Square_Breathing() {
   selectInteraction(squareBreathing);
+}
+
+public void Step_Breathing() {
+    selectInteraction(sectionBreathing);
 }
 
 public void Deflate_All_Pillows() {
@@ -709,33 +723,6 @@ class StopAll implements Interaction {
   public void teardown(ControlP5 cp5) {}
 }
 
-class RecordAll implements Interaction {
-  SimpleDateFormat fileNameFormat = new SimpleDateFormat("'recording/pressure'-yyyy-MM-dd'T'HH-mm-ss.'log'");
-  PrintWriter output = null;
-  String fileName = null;
-  public void prepare(Measurement initial, ControlP5 cp5) {
-    if (output != null) {
-      output.close();
-    }
-    fileName = fileNameFormat.format(initial.timeMs);
-    output = createWriter(fileName);
-    output.println(initial.csvHeading());
-    myTextarea2.setText("Recording to " + fileName);
-  }
-
-  public Output run(Measurement inputs) {
-    output.println(inputs.csvLine());
-    return null;
-  }
-
-  public void teardown(ControlP5 cp5) {
-    myTextarea2.setText("Recording ended.");
-    output.flush();
-    output.close();
-    output = null;
-    fileName = null;
-  }
-}
 
 // OSC handling
 void oscEvent(OscMessage theOscMessage) {
