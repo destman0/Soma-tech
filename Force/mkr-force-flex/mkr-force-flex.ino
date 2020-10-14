@@ -35,8 +35,8 @@ char packetBuffer[255]; //buffer to hold incoming packet
 
 WiFiUDP Udp;
 
-const IPAddress serverIp(192, 168, 0, 140); // 192, 168, 0, 140
-const unsigned int serverPort = 32000;
+const IPAddress serverIp(192, 168, 0, 140); // 192, 168, 0, 197 for Kelsey
+const unsigned int serverPort = 32000; // 32005 for Kelsey
 
 
 unsigned long time_now = 0; //in order to keep the time so that we can simulate delay() without blocking the loop() function
