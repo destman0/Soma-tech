@@ -223,13 +223,13 @@ class SquareBreathing implements Interaction {
   private void playPhaseAudio(int phase) {
     switch (phase) {
     case INHALE:
-      ( in_phase ? inhaleAudio : exhaleAudio ).play();
+      inhaleAudio.play();
       return;
     case EXHALE:
-      ( in_phase ? exhaleAudio : inhaleAudio ).play();
+      exhaleAudio.play();
       return;
     case HOLD1: // Fall-through
-    case HOLD2: // Fall-through
+    case HOLD2:
       holdAudio.play();
       return;
     }
