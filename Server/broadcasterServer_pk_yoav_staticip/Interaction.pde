@@ -8,6 +8,14 @@ public interface Interaction {
   public void teardown(ControlP5 cp5);
 }
 
+public float clip(float v, float minValue, float maxValue) {
+  return v < minValue
+    ? minValue
+    : (v > maxValue
+         ? maxValue
+         : v);
+}
+
 public static SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSS");
 
 class Measurement {
@@ -111,7 +119,7 @@ class Output {
   }
 
   public String toString() {
-    return "Measurement("
+    return "Output("
       + "pressure1=" + String.valueOf(pressure1) + ","
       + "pressure2=" + String.valueOf(pressure2) + ","
       + "pressure3=" + String.valueOf(pressure3) + ","
@@ -121,20 +129,20 @@ class Output {
   }
 
   public Output sum(Output o) {
-    return new Output(constrain(this.pressure1 + o.pressure1, -100, 100),
-                      constrain(this.pressure2 + o.pressure2, -100, 100),
-                      constrain(this.pressure3 + o.pressure3, -100, 100),
-                      constrain(this.pressure4 + o.pressure4, -100, 100),
-                      constrain(this.pressure5 + o.pressure5, -100, 100)
+    return new Output(this.pressure1 + o.pressure1,
+                      this.pressure2 + o.pressure2,
+                      this.pressure3 + o.pressure3,
+                      this.pressure4 + o.pressure4,
+                      this.pressure5 + o.pressure5
                       );
   }
 
   public Output setAll(float v) { return set1(v).set2(v).set3(v).set4(v).set5(v); }
-  public Output set1(float v) { pressure1 = constrain(v, -100, 100); return this; }
-  public Output set2(float v) { pressure2 = constrain(v, -100, 100); return this; }
-  public Output set3(float v) { pressure3 = constrain(v, -100, 100); return this; }
-  public Output set4(float v) { pressure4 = constrain(v, -100, 100); return this; }
-  public Output set5(float v) { pressure5 = constrain(v, -100, 100); return this; }
+  public Output set1(float v) { pressure1 = v; return this; }
+  public Output set2(float v) { pressure2 = v; return this; }
+  public Output set3(float v) { pressure3 = v; return this; }
+  public Output set4(float v) { pressure4 = v; return this; }
+  public Output set5(float v) { pressure5 = v; return this; }
 
   public Output map1(Function<Float, Float> f) { return set1(f.apply(pressure1)); }
   public Output map2(Function<Float, Float> f) { return set2(f.apply(pressure2)); }

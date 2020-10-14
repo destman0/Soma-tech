@@ -222,13 +222,14 @@ class BreathMirroring implements Interaction {
       Measurement cm = inputs.get(i);
       Output p = smoothed.get(i - 1);
       Output c = smoothed.get(i);
-      result.add(new Output(
-                            diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure1, c.pressure1)),
-                            diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure2, c.pressure2)),
-                            diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure3, c.pressure3)),
-                            diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure4, c.pressure4)),
-                            diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure5, c.pressure5))
-      ));
+      Output res = new Output(diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure1, c.pressure1)),
+                              diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure2, c.pressure2)),
+                              diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure3, c.pressure3)),
+                              diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure4, c.pressure4)),
+                              diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure5, c.pressure5))
+                              );
+      println("Calculated for " + i + ": " + res.toString());
+      result.add(res);
     }
     return result;
   }
@@ -292,14 +293,6 @@ float diff(long x1, long x2, float y1, float y2) {
   return x1 == x2
     ? 0.0
     : (y2 - y1) / (x2 - x1);
-}
-
-float clip(float val, float from, float to) {
-  return val > to
-    ? to
-    : val < from
-    ? from
-    : val;
 }
 
 float readFloat(String from,float defaultValue){
