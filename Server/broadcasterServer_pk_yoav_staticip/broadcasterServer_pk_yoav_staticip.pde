@@ -422,6 +422,12 @@ void setup() {
      .setValue(true)
      ;
 
+  cp5.addToggle("skip_intro")
+      .setPosition(20,150)
+      .setSize(50,30)
+      .setValue(false)
+      .setVisible(false)
+      ;
 
 
   frameRate(60);

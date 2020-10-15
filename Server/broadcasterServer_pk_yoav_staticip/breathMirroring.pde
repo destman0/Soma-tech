@@ -41,6 +41,7 @@ class BreathMirroring implements Interaction {
     stopAllPillows();
     instructionsAudio.stop();
     exerciseAudio.stop();
+    cp5.getController("skip_intro").setVisible(false);
   }
 
   StateMachineRunner<Measurement> runner;
@@ -57,7 +58,9 @@ class BreathMirroring implements Interaction {
           public State<Measurement> run(Measurement in) {
             boolean done = adjustPressureTo(1040, in);
             long instructionsStart = timings.size() > 0 ? timings.firstKey() : 5000;
-            if (position() < instructionsStart) {
+            if (cp5.getController("skip_intro").getValue() == 1.0) {
+              return postInflate;
+            } else if (position() < instructionsStart) {
               return this;
             } else {
               return instructions;
@@ -69,7 +72,9 @@ class BreathMirroring implements Interaction {
           public void enter(Measurement in) {}
           public State<Measurement> run(Measurement in) {
             Map.Entry<Long, Output> entry = timings.lowerEntry(position());
-            if (entry == null) {
+            if (cp5.getController("skip_intro").getValue() == 1.0) {
+              return postInflate;
+            } else if (entry == null) {
               // Nothing to do, state in this state
               return this;
             } else if (timings.lastKey() == entry.getKey()) {
@@ -80,13 +85,16 @@ class BreathMirroring implements Interaction {
               sendOutputValues(entry.getValue());
               return this;
             }
-          }
+            }
           public void exit() {}
         };
       State<Measurement> postInflate = new State<Measurement>() {
           public void enter(Measurement in) {}
           public State<Measurement> run(Measurement in) {
             boolean done = adjustPressureTo(GOAL_PRESSURE, in);
+            if (cp5.getController("skip_intro").getValue() == 1.0) {
+              instructionsAudio.stop();
+            }
             if (done && !instructionsAudio.isPlaying()) {
               return null;
             } else {
@@ -98,6 +106,7 @@ class BreathMirroring implements Interaction {
 
       public void enter(Measurement in) {
         myTextarea2.setText("Follow Breathing Interaction");
+        cp5.getController("skip_intro").setVisible(true);
         instructionsAudio.play();
         timings = instructionsTiming;
         // Initialize internal state machine
@@ -112,7 +121,10 @@ class BreathMirroring implements Interaction {
           return measureState;
         }
       }
-      public void exit() {}
+      public void exit() {
+        cp5.getController("skip_intro").setVisible(false);
+        cp5.getController("skip_intro").setValue(0.0);
+      }
     };
 
   // Creating a new state that inherits 
