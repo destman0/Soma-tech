@@ -26,7 +26,6 @@ class BreathMirroring implements Interaction {
 
   long startTimeMs = 0l;
 
-
   ArrayList<Measurement> measurements = null;
   ArrayList<Output> replayValues = null;
   int replayIndex = 0;
@@ -217,16 +216,17 @@ class BreathMirroring implements Interaction {
   ArrayList<Output> calculateReplayValues(ArrayList<Measurement> inputs) {
     List<Output> smoothed = slidingAvg(toPressures(inputs), 10);
     ArrayList<Output> result = new ArrayList(inputs.size());
+    float phaseValue = in_phase ? 1.0 : -1.0;
     for (int i = 1; i < smoothed.size(); i++) {
       Measurement pm = inputs.get(i - 1);
       Measurement cm = inputs.get(i);
       Output p = smoothed.get(i - 1);
       Output c = smoothed.get(i);
-      Output res = new Output(diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure1, c.pressure1)),
-                              diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure2, c.pressure2)),
-                              diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure3, c.pressure3)),
-                              diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure4, c.pressure4)),
-                              diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure5, c.pressure5))
+      Output res = new Output(phaseValue * diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure1, c.pressure1)),
+                              phaseValue * diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure2, c.pressure2)),
+                              phaseValue * diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure3, c.pressure3)),
+                              phaseValue * diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure4, c.pressure4)),
+                              phaseValue * diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure5, c.pressure5))
                               );
       println("Calculated for " + i + ": " + res.toString());
       result.add(res);
