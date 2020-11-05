@@ -1,10 +1,12 @@
-class BreathMirroring implements Interaction {
+class BreathMirroring extends RecordingInteraction {
 
-  public BreathMirroring(SoundFile instructionsAudio,
+  public BreathMirroring(String name,
+                         SoundFile instructionsAudio,
                          SoundFile exerciseAudio,
                          SoundFile beforeReply,
                          SoundFile endAudio,
                          TreeMap<Long, Output> instructionsTiming) {
+    super(name);
     this.instructionsAudio = instructionsAudio;
     this.exerciseAudio = exerciseAudio;
     this.instructionsTiming = instructionsTiming;
@@ -26,7 +28,6 @@ class BreathMirroring implements Interaction {
 
   long startTimeMs = 0l;
 
-
   ArrayList<Measurement> measurements = null;
   ArrayList<Output> replayValues = null;
   int replayIndex = 0;
@@ -34,10 +35,12 @@ class BreathMirroring implements Interaction {
   public String buttonName = "Breathing Mirroring";
 
   public void prepare(Measurement initial, ControlP5 cp5) {
+    super.prepare(initial, cp5);
     runner = new StateMachineRunner<Measurement>(instructionsState, initial);
   }
 
   public void teardown(ControlP5 cp5) {
+    super.teardown(cp5);
     stopAllPillows();
     instructionsAudio.stop();
     exerciseAudio.stop();
@@ -200,6 +203,7 @@ class BreathMirroring implements Interaction {
     };
 
   public Output run(Measurement in) {
+    super.run(in);
     runner.run(in);
     return null;
   }
@@ -217,16 +221,17 @@ class BreathMirroring implements Interaction {
   ArrayList<Output> calculateReplayValues(ArrayList<Measurement> inputs) {
     List<Output> smoothed = slidingAvg(toPressures(inputs), 10);
     ArrayList<Output> result = new ArrayList(inputs.size());
+    float phaseValue = in_phase ? 1.0 : -1.0;
     for (int i = 1; i < smoothed.size(); i++) {
       Measurement pm = inputs.get(i - 1);
       Measurement cm = inputs.get(i);
       Output p = smoothed.get(i - 1);
       Output c = smoothed.get(i);
-      Output res = new Output(diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure1, c.pressure1)),
-                              diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure2, c.pressure2)),
-                              diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure3, c.pressure3)),
-                              diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure4, c.pressure4)),
-                              diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure5, c.pressure5))
+      Output res = new Output(phaseValue * diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure1, c.pressure1)),
+                              phaseValue * diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure2, c.pressure2)),
+                              phaseValue * diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure3, c.pressure3)),
+                              phaseValue * diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure4, c.pressure4)),
+                              phaseValue * diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure5, c.pressure5))
                               );
       println("Calculated for " + i + ": " + res.toString());
       result.add(res);

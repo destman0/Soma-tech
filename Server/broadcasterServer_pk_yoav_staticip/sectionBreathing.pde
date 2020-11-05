@@ -1,4 +1,4 @@
-public class SectionBreathingInteraction implements Interaction {
+public class SectionBreathingInteraction extends RecordingInteraction {
     int repetitions = 4;
     ControlP5 cp5;
 
@@ -6,6 +6,10 @@ public class SectionBreathingInteraction implements Interaction {
     final float INHALE_SECONDARY_AMOUNT = 25;
     final float EXHALE_AMOUNT = -80;
     final float EXHALE_SECONDARY_AMOOUNT = -30;
+
+  public SectionBreathingInteraction() {
+    super("sectionBreathing");
+  }
 
     class HoldState extends MeasurementState {
         State<Measurement> nextState;
@@ -175,15 +179,19 @@ public class SectionBreathingInteraction implements Interaction {
         };
 
     public void prepare(Measurement initialState, ControlP5 cp5) {
-        runner = new StateMachineRunner(instructions, initialState);
-        this.cp5 = cp5;
+      super.prepare(initialState, cp5);
+      runner = new StateMachineRunner(instructions, initialState);
+      this.cp5 = cp5;
     }
 
     public Output run(Measurement inputs) {
-        runner.run(inputs);
-        return null;
+      super.run(inputs);
+      runner.run(inputs);
+      return null;
     }
 
-    public void teardown(ControlP5 cp5) {}
+    public void teardown(ControlP5 cp5) {
+      super.teardown(cp5);
+    }
 
 }
