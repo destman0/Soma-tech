@@ -192,7 +192,7 @@ Interaction explosive1;
 Interaction explosive2;
 Interaction recordAll;
 Interaction sectionBreathing;
-Interaction playfulBreathing;
+// Interaction playfulBreathing;
 
 void setup() {
   oscP5 = new OscP5(this, myListeningPort);
@@ -217,11 +217,11 @@ void setup() {
   //   .setSize(300,45)
   //   ;
 
-  cp5.addButton("Playful_Test")
-    .setValue(0)
-    .setPosition(100, 10)
-    .setSize(300,90)
-    ;
+  // cp5.addButton("Playful_Test")
+  //   .setValue(0)
+  //   .setPosition(100, 10)
+  //   .setSize(300,90)
+  //   ;
 
 
   cp5.addButton("Fricative_Exhale")
@@ -582,7 +582,7 @@ void setup() {
 
 //   explosive1 = new ExplosivePaInteraction(500);
 //   explosive2 = new ExplosivePaInteraction(200);
-  playfulBreathing = new PlayfulBreathing();
+  // playfulBreathing = new PlayfulBreathing();
 }
 
 Measurement currentMeasurement;
@@ -657,9 +657,9 @@ public void Record_Only() {
   selectInteraction(recordAll);
 }
 
-public void Playful_Test() {
-  selectInteraction(playfulBreathing);
-}
+// public void Playful_Test() {
+//   selectInteraction(playfulBreathing);
+// }
 
 Measurement readInputs() {
   return new Measurement(System.currentTimeMillis(),
