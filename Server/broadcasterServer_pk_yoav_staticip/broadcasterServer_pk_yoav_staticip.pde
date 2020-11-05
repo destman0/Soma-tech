@@ -70,6 +70,7 @@ int waitForPressureWait = 0;
 
 boolean calibrated = false;
 boolean in_phase = false;
+boolean recording = false;
 
 //import org.apache.commons.collections4.*;
 
@@ -191,6 +192,7 @@ Interaction explosive1;
 Interaction explosive2;
 Interaction recordAll;
 Interaction sectionBreathing;
+Interaction playfulBreathing;
 
 void setup() {
   oscP5 = new OscP5(this, myListeningPort);
@@ -214,6 +216,13 @@ void setup() {
   //   .setPosition(300, 0)
   //   .setSize(300,45)
   //   ;
+
+  cp5.addButton("Playful_Test")
+    .setValue(0)
+    .setPosition(100, 10)
+    .setSize(300,90)
+    ;
+
 
   cp5.addButton("Fricative_Exhale")
      .setValue(0)
@@ -422,6 +431,12 @@ void setup() {
      .setValue(true)
      ;
 
+  cp5.addToggle("recording")
+    .setPosition(20, 50)
+    .setSize(50,30)
+    .setColorForeground(color(240, 10, 10))
+    .setValue(false)
+    ;
 
 
   frameRate(60);
@@ -475,7 +490,8 @@ void setup() {
   // Pause
   breathing1timings.put(91000l,                 new Output());
 
-  breathMirroring1 = new BreathMirroring(new SoundFile(this, "audio/breathing-exercise-1-instructions.wav"),
+  breathMirroring1 = new BreathMirroring("frictiveBreathing",
+                                         new SoundFile(this, "audio/breathing-exercise-1-instructions.wav"),
                                          new SoundFile(this, "audio/breathing-exercise-1-exercise.wav"),
                                          new SoundFile(this, "audio/and-now-your-breathing.wav"),
                                          new SoundFile(this, "audio/and-breath-in-normally-pavel.wav"),
@@ -528,13 +544,14 @@ void setup() {
 
   breathing2timings.put(148200l,                new Output());
 
-  breathMirroring2 = new BreathMirroring(new SoundFile(this, "audio/mirror-breathing-2-instructions.wav"),
+  breathMirroring2 = new BreathMirroring("appoggio",
+                                         new SoundFile(this, "audio/mirror-breathing-2-instructions.wav"),
                                          new SoundFile(this, "audio/mirror-breathing-2-exercise-v2.wav"),
                                          new SoundFile(this, "audio/and-now-your-breathing.wav"),
                                          new SoundFile(this, "audio/and-breath-in-normally-pavel.wav"),
                                          breathing2timings);
 
-  hrvBreathing = new HrvBreathing(new SoundFile(this, "audio/hrv-instructions.wav"), true);
+  hrvBreathing = new HrvBreathing(new SoundFile(this, "audio/hrv-instructions.wav"));
 
   ArrayList<SoundFile> countAudioFiles = new ArrayList();
   countAudioFiles.add(new SoundFile(this, "audio/one.wav"));
@@ -565,6 +582,7 @@ void setup() {
 
 //   explosive1 = new ExplosivePaInteraction(500);
 //   explosive2 = new ExplosivePaInteraction(200);
+  playfulBreathing = new PlayfulBreathing();
 }
 
 Measurement currentMeasurement;
@@ -637,6 +655,10 @@ public void Explosive_Pa_200() {
 
 public void Record_Only() {
   selectInteraction(recordAll);
+}
+
+public void Playful_Test() {
+  selectInteraction(playfulBreathing);
 }
 
 Measurement readInputs() {

@@ -1,10 +1,12 @@
-class BreathMirroring implements Interaction {
+class BreathMirroring extends RecordingInteraction {
 
-  public BreathMirroring(SoundFile instructionsAudio,
+  public BreathMirroring(String name,
+                         SoundFile instructionsAudio,
                          SoundFile exerciseAudio,
                          SoundFile beforeReply,
                          SoundFile endAudio,
                          TreeMap<Long, Output> instructionsTiming) {
+    super(name);
     this.instructionsAudio = instructionsAudio;
     this.exerciseAudio = exerciseAudio;
     this.instructionsTiming = instructionsTiming;
@@ -33,10 +35,12 @@ class BreathMirroring implements Interaction {
   public String buttonName = "Breathing Mirroring";
 
   public void prepare(Measurement initial, ControlP5 cp5) {
+    super.prepare(initial, cp5);
     runner = new StateMachineRunner<Measurement>(instructionsState, initial);
   }
 
   public void teardown(ControlP5 cp5) {
+    super.teardown(cp5);
     stopAllPillows();
     instructionsAudio.stop();
     exerciseAudio.stop();
@@ -199,6 +203,7 @@ class BreathMirroring implements Interaction {
     };
 
   public Output run(Measurement in) {
+    super.run(in);
     runner.run(in);
     return null;
   }

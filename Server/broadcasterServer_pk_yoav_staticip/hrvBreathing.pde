@@ -1,20 +1,12 @@
 private static int OUTRO_PERCENT = 10;
 
-class HrvBreathing implements Interaction {
+class HrvBreathing extends RecordingInteraction {
 
-  SimpleDateFormat fileNameFormat = new SimpleDateFormat("'recording/hrvBreathing'-yyyy-MM-dd'T'HH-mm-ss.'log'");
-  PrintWriter output = null;
-  String fileName = null;
   SoundFile instructionsAudio;
-  boolean recordInputs;
-
-  public HrvBreathing(SoundFile instructions, boolean record) {
-    this.instructionsAudio = instructions;
-    this.recordInputs = record;
-  }
 
   public HrvBreathing(SoundFile instructions) {
-    this(instructions, false);
+    super("hrvBreathing");
+    this.instructionsAudio = instructions;
   }
 
   private ControlP5 cp5;
@@ -38,15 +30,7 @@ class HrvBreathing implements Interaction {
     cp5.getController("Inflation_Rate").setVisible(true);
     cp5.getController("Deflation_Rate").setVisible(true);
     cp5.getController("Inhale_or_Exhale_Duration").setVisible(true);
-
-    if (output != null) {
-      output.close();
-    }
-    fileName = fileNameFormat.format(initial.timeMs);
-    if (recordInputs) {
-      output = createWriter(fileName);
-      output.println(initial.csvHeading());
-    }
+    super.prepare(initial, cp5);
   }
 
   public void teardown(ControlP5 cp5) {
@@ -54,21 +38,12 @@ class HrvBreathing implements Interaction {
     cp5.getController("Inflation_Rate").setVisible(false);
     cp5.getController("Deflation_Rate").setVisible(false);
     cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
-
-    if (recordInputs) {
-      output.flush();
-      output.close();
-      output = null;
-      fileName = null;
-    }
+    super.teardown(cp5);
   }
 
   public Output run(Measurement input) {
     // +++++++++++++++++++++++++++++++++++Slow HRV breathing++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    if (recordInputs) {
-      output.println(input.csvLine());
-    }
-
+    super.run(input);
     slow_breathing_duration = int(cp5.getController("Duration_of_Exercise").getValue());
     outroDuration = slow_breathing_duration * ((float)OUTRO_PERCENT / 100.0);
 

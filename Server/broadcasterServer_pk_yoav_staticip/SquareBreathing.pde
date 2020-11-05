@@ -1,4 +1,4 @@
-class SquareBreathing implements Interaction {
+class SquareBreathing extends RecordingInteraction {
   private int interaction_part;
   private boolean interactionstarted = false;
   private long interactionstarttime;
@@ -22,6 +22,7 @@ class SquareBreathing implements Interaction {
   private final int HOLD2  = 3;
 
   public SquareBreathing(SoundFile instructions, ArrayList<SoundFile> countingAudio, SoundFile exhaleAudio, SoundFile inhaleAudio, SoundFile holdAudio, SoundFile outroAudio) {
+    super("squareBreathing");
     this.countingAudio = countingAudio;
     this.exhaleAudio = exhaleAudio;
     this.inhaleAudio = inhaleAudio;
@@ -31,6 +32,7 @@ class SquareBreathing implements Interaction {
   }
 
   public void prepare(Measurement initialState, ControlP5 cp5) {
+    super.prepare(initialState, cp5);
     interaction_part = 0;
     interactionstarted = false;
     current_cycle = 0;
@@ -49,6 +51,7 @@ class SquareBreathing implements Interaction {
 
   public Output run(Measurement inputs) {
     //+++++++++++++++++++++++++++++++++Equal / Square Breathing++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    super.run(inputs);
     n_cycles = int(cp5.getController("Number_of_Cycles").getValue());
     if (interaction_part==0){
       if(interactionstarted==false){
@@ -170,6 +173,7 @@ class SquareBreathing implements Interaction {
   }
 
   public void teardown(ControlP5 cp5) {
+    super.teardown(cp5);
     cp5.getController("Number_of_Cycles").setVisible(false);
     cp5.getController("Duration_of_Exercise").setVisible(false);
     cp5.getController("Inflation_Rate").setVisible(false);

@@ -8,6 +8,64 @@ public interface Interaction {
   public void teardown(ControlP5 cp5);
 }
 
+public abstract class RecordingInteraction implements Interaction {
+  protected PrintWriter output = null;
+  protected String fileName = null;
+  protected String interactionName;
+  protected boolean isRecording = false;
+
+  SimpleDateFormat fileNameFormat;
+  protected RecordingInteraction(String name) {
+    this.interactionName = name;
+    this.fileNameFormat = new SimpleDateFormat("'recording/"
+                                               + name + "'"
+                                               +"-yyyy-MM-dd'T'HH-mm-ss.'log'");
+  }
+
+  public void prepare(Measurement initialState, ControlP5 cp5) {
+    if (recording) {  // `recording` is set by a ControlP5 toggle
+      startRecording(initialState);
+    }
+  }
+
+  protected void startRecording(Measurement data) {
+    isRecording = true;
+    if (output != null) {
+      output.close();
+    }
+    fileName = fileNameFormat.format(data.timeMs);
+    output = createWriter(fileName);
+    output.println(data.csvHeading());
+  }
+
+  public Output run(Measurement inputs) {
+    if (recording && !isRecording) {
+      startRecording(inputs);
+    } else if (!recording && isRecording) {
+      stopRecording();
+    }
+    if (isRecording) {
+      output.println(inputs.csvLine());
+    }
+    return null;
+  }
+
+  protected void stopRecording() {
+    if (isRecording) {
+      isRecording = false;
+      output.flush();
+      output.close();
+      output = null;
+      fileName = null;
+    }
+  }
+
+  public void teardown(ControlP5 cp5) {
+    stopRecording();
+  }
+
+}
+
 public float clip(float v, float minValue, float maxValue) {
   return v < minValue
     ? minValue
