@@ -129,7 +129,7 @@ class Measurement {
   }
 
   public String csvHeading() {
-    return "time, pressure1, pressure2, pressure3, pressure4, pressure5, button, forceSensor";
+    return "time,pressure1,pressure2,pressure3,pressure4,pressure5,button,forceSensor";
   }
 
   public String csvLine() {
