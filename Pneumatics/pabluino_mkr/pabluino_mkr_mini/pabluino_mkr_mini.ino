@@ -25,7 +25,7 @@ Adafruit_MPRLS mpr = Adafruit_MPRLS(RESET_PIN, EOC_PIN);
 
 int inflatePower = 0;
 
-char ssid[] = "serv";        // your network SSID (name)
+char ssid[] = "serv2";        // your network SSID (name)
 char pass[] = "somaserv";    // your network password (use for WPA, or use as key for WEP)
 int status = WL_IDLE_STATUS;     // the WiFi radio's status
 
