@@ -192,6 +192,8 @@ Interaction explosive1;
 Interaction explosive2;
 Interaction recordAll;
 Interaction sectionBreathing;
+Interaction playIntro;
+Interaction playScan;
 // Interaction playfulBreathing;
 
 void setup() {
@@ -223,6 +225,17 @@ void setup() {
   //   .setSize(300,90)
   //   ;
 
+  cp5.addButton("Introduction")
+    .setValue(0)
+    .setPosition(100, 50)
+    .setSize(300,90)
+    ;
+
+  cp5.addButton("Breath_Scan")
+    .setValue(0)
+    .setPosition(410, 50)
+    .setSize(300,90)
+    ;
 
   cp5.addButton("Fricative_Exhale")
      .setValue(0)
@@ -580,6 +593,10 @@ void setup() {
 
   sectionBreathing = new SectionBreathingInteraction();
 
+  playIntro = new PlayAudio(new SoundFile(this, "audio/welcome.wav"), "Welcome");
+
+  playScan = new PlayAudio(new SoundFile(this, "audio/scan.wav"), "Breathing Scan");
+
 //   explosive1 = new ExplosivePaInteraction(500);
 //   explosive2 = new ExplosivePaInteraction(200);
   // playfulBreathing = new PlayfulBreathing();
@@ -655,6 +672,14 @@ public void Explosive_Pa_200() {
 
 public void Record_Only() {
   selectInteraction(recordAll);
+}
+
+public void Introduction() {
+  selectInteraction(playIntro);
+}
+
+public void Breath_Scan() {
+  selectInteraction(playScan);
 }
 
 // public void Playful_Test() {
@@ -743,6 +768,32 @@ class StopAll implements Interaction {
   }
 
   public void teardown(ControlP5 cp5) {}
+}
+
+class PlayAudio implements Interaction {
+  protected SoundFile audio;
+  protected String textMessage;
+
+  public PlayAudio(SoundFile audio, String text) {
+    this.audio = audio;
+    this.textMessage = text;
+  }
+
+  public void prepare(Measurement ignore, ControlP5 cp5) {
+    if (textMessage != null) {
+      myTextarea2.setText(textMessage);
+    }
+    audio.play();
+  }
+
+  public Output run(Measurement ignore) {
+    return null;
+  }
+
+  public void teardown(ControlP5 cp5) {
+    myTextarea2.setText("");
+    audio.stop();
+  }
 }
 
 
