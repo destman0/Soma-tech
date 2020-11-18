@@ -114,6 +114,11 @@ HashMap<String, Device> DeviceIPs = new HashMap<String, Device>();
   DeviceIPs.put("192.168.0.13", new Device(3, DeviceRole.Both));
   DeviceIPs.put("192.168.0.14", new Device(4, DeviceRole.Both));
   DeviceIPs.put("192.168.0.15", new Device(5, DeviceRole.Both));
+  DeviceIPs.put("192.168.0.16", new Device(6, DeviceRole.Both));
+  DeviceIPs.put("192.168.0.17", new Device(7, DeviceRole.Both));
+  DeviceIPs.put("192.168.0.18", new Device(8, DeviceRole.Both));
+  DeviceIPs.put("192.168.0.19", new Device(9, DeviceRole.Both));
+  DeviceIPs.put("192.168.0.20", new Device(10, DeviceRole.Both));
 }}
 
 Map<String, Device> getActuators() {
@@ -743,6 +748,11 @@ Measurement readInputs() {
                          readFloat("3/pressure", 0.0),
                          readFloat("4/pressure", 0.0),
                          readFloat("5/pressure", 0.0),
+                         readFloat("6/pressure", 0.0),
+                         readFloat("7/pressure", 0.0),
+                         readFloat("8/pressure", 0.0),
+                         readFloat("9/pressure", 0.0),
+                         readFloat("10/pressure", 0.0),
                          buttonStatus,
                          forceSensor
                          );
@@ -754,6 +764,11 @@ void sendOutputValues(Output out) {
   sendTo(3, out.pressure3);
   sendTo(4, out.pressure4);
   sendTo(5, out.pressure5);
+  sendTo(6, out.pressure6);
+  sendTo(7, out.pressure7);
+  sendTo(8, out.pressure8);
+  sendTo(9, out.pressure9);
+  sendTo(10, out.pressure10);
 }
 
 void sendTo(int device, float value) {
@@ -767,13 +782,20 @@ void draw() {
 
   currentMeasurement = readInputs();
 
-  myTextarea1.setText("Pressure in the bit number one:    " + (currentMeasurement.pressure1) + " \n"
-      + "Pressure in the bit number two:     " + (currentMeasurement.pressure2) + " \n"
-      + "Pressure in the bit number three:   " + (currentMeasurement.pressure3) + "\n"
-      + "Pressure in the bit number four:    " + (currentMeasurement.pressure4) + "\n"
-      + "Pressure in the bit number five:    " + (currentMeasurement.pressure5) + "\n"
-      + "Button state:                       " + buttonStatus                   + "\n"
-      + "Force sensor:                       " + forceSensor                    + "\n"
+  myTextarea1.setText(String.format(
+        "Pressure bit 1: %1$10.2f \t Pressure bit 2:  %2$10.2f\n" +
+        "Pressure bit 3: %3$10.2f \t Pressure bit 4:  %4$10.2f\n" +
+        "Pressure bit 5: %5$10.2f \t Pressure bit 6:  %6$10.2f\n" +
+        "Pressure bit 7: %7$10.2f \t Pressure bit 8:  %8$10.2f\n" +
+        "Pressure bit 9: %9$10.2f \t Pressure bit 10: %10$10.2f\n" +
+        "Button state:  %11$2.0f \t Force sensor: %12$8.2f\n",
+        new Float( currentMeasurement.pressure1 ), new Float( currentMeasurement.pressure2 ),
+        new Float( currentMeasurement.pressure3 ), new Float( currentMeasurement.pressure4 ),
+        new Float( currentMeasurement.pressure5 ), new Float( currentMeasurement.pressure6 ),
+        new Float( currentMeasurement.pressure7 ), new Float( currentMeasurement.pressure8 ),
+        new Float( currentMeasurement.pressure9 ), new Float( currentMeasurement.pressure10 ),
+        new Float(currentMeasurement.button), new Float(currentMeasurement.forceSensor)
+                                    )
   );
 
   Output output = currentInteraction != null
@@ -850,7 +872,7 @@ class SetPressure implements Interaction {
   Controller slider;
   Measurement initialState;
   float target;
-  float[] diffs = new float[5];
+  float[] diffs = new float[10];
 
   public void prepare(Measurement initialState, ControlP5 cp5) {
     this.slider = cp5.getController("Target_Pressure");
@@ -866,6 +888,11 @@ class SetPressure implements Interaction {
     diffs[2] = target - in.pressure3;
     diffs[3] = target - in.pressure4;
     diffs[4] = target - in.pressure5;
+    diffs[5] = target - in.pressure6;
+    diffs[6] = target - in.pressure7;
+    diffs[7] = target - in.pressure8;
+    diffs[8] = target - in.pressure9;
+    diffs[9] = target - in.pressure10;
   }
 
   public void teardown(ControlP5 cp5) {
@@ -881,7 +908,12 @@ class SetPressure implements Interaction {
                             update(diffs[1], target, in.pressure2),
                             update(diffs[2], target, in.pressure3),
                             update(diffs[3], target, in.pressure4),
-                            update(diffs[4], target, in.pressure5)
+                            update(diffs[4], target, in.pressure5),
+                            update(diffs[5], target, in.pressure6),
+                            update(diffs[6], target, in.pressure7),
+                            update(diffs[7], target, in.pressure8),
+                            update(diffs[8], target, in.pressure9),
+                            update(diffs[9], target, in.pressure10)
                             );
     return out;
   }
@@ -998,22 +1030,20 @@ private String cleanActuatorPattern(OscMessage theOscMessage){
   String[] newAddress = new String[addrComponents.length-1];
   //"_/[actuator]/[id]"
 
-    try
-    {
-            // checking valid integer using parseInt() method
-            Integer.parseInt(addrComponents[2]);
+  try {
+      // checking valid integer using parseInt() method
+      Integer.parseInt(addrComponents[2]);
 
-            for(int i=0, j=0;i<newAddress.length;i++,j++){
-              if(i==2) i++;
-              newAddress[j] = addrComponents[i];
-            }
+      for(int i=0, j=0;i<newAddress.length;i++,j++){
+        if(i==2) i++;
+        newAddress[j] = addrComponents[i];
+      }
 
-            return join(newAddress,"/");
-    }
-    catch (Exception e) //this means that it is not an integer and then it is meant for all actuators
-    {
-       return theOscMessage.addrPattern();
-    }
+      return join(newAddress,"/");
+  }
+  catch (Exception e) { //this means that it is not an integer and then it is meant for all actuators
+    return theOscMessage.addrPattern();
+  }
 
 }
 
