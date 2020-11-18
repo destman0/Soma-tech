@@ -193,8 +193,24 @@ Interaction explosive2;
 Interaction recordAll;
 Interaction sectionBreathing;
 Interaction playIntro;
+Interaction playOutro;
 Interaction playScan;
+Interaction setPressureInteraction;
 // Interaction playfulBreathing;
+
+static int BUTTONS_START = 100;
+static int BUTTONS_END = 710;
+static int BUTTONS_GUTTER = 10;
+static int BUTTON_1_START = BUTTONS_START;
+static int BUTTON_OF_2_WIDTH = (BUTTONS_END - BUTTONS_START - BUTTONS_GUTTER) / 2;
+static int BUTTON_2_OF_2_START = BUTTONS_START + BUTTONS_GUTTER + BUTTON_OF_2_WIDTH;
+static int BUTTON_OF_3_WIDTH = (BUTTONS_END - BUTTONS_START - (2 * BUTTONS_GUTTER)) / 3;
+static int BUTTON_2_OF_3_START = BUTTONS_START + BUTTONS_GUTTER + BUTTON_OF_3_WIDTH;
+static int BUTTON_3_OF_3_START = BUTTONS_START + (2 * (BUTTONS_GUTTER + BUTTON_OF_3_WIDTH));
+static int BUTTON_OF_4_WIDTH = (BUTTONS_END - BUTTONS_START - (3 * BUTTONS_GUTTER)) / 4;
+static int BUTTON_2_OF_4_START = BUTTONS_START + BUTTONS_GUTTER + BUTTON_OF_4_WIDTH;
+static int BUTTON_3_OF_4_START = BUTTONS_START + (2 * (BUTTONS_GUTTER + BUTTON_OF_4_WIDTH));
+static int BUTTON_4_OF_4_START = BUTTONS_START + (3 * (BUTTONS_GUTTER + BUTTON_OF_4_WIDTH));
 
 void setup() {
   oscP5 = new OscP5(this, myListeningPort);
@@ -225,16 +241,23 @@ void setup() {
   //   .setSize(300,90)
   //   ;
 
+
   cp5.addButton("Introduction")
     .setValue(0)
-    .setPosition(100, 50)
-    .setSize(300,90)
+    .setPosition(BUTTON_1_START, 50)
+    .setSize(BUTTON_OF_3_WIDTH, 90)
     ;
 
   cp5.addButton("Breath_Scan")
     .setValue(0)
-    .setPosition(410, 50)
-    .setSize(300,90)
+    .setPosition(BUTTON_2_OF_3_START, 50)
+    .setSize(BUTTON_OF_3_WIDTH, 90)
+    ;
+
+  cp5.addButton("Outro")
+    .setValue(0)
+    .setPosition(BUTTON_3_OF_3_START, 50)
+    .setSize(BUTTON_OF_3_WIDTH, 90)
     ;
 
   cp5.addButton("Fricative_Exhale")
@@ -267,25 +290,31 @@ void setup() {
       .setSize(300,90)
       ;
 
-    cp5.addButton("Deflate_All_Pillows")
+  cp5.addButton("Deflate_All_Pillows")
      .setValue(100)
-     .setPosition(100,600)
-     .setSize(190,90)
+     .setPosition(BUTTON_1_START, 600)
+     .setSize(BUTTON_OF_4_WIDTH, 90)
      .setColorBackground(0xff008888)
      ;
 
+    cp5.addButton("Inflate_To")
+      .setValue(1)
+      .setPosition(BUTTON_2_OF_4_START, 600)
+      .setSize(BUTTON_OF_4_WIDTH, 90)
+      .setColorBackground(0xff008888);
+
+
    cp5.addButton("Stop_All_Pillows")
      .setValue(100)
-     .setPosition(305, 600)
-     .setSize(190,90)
-     //.setColor(cc)
+     .setPosition(BUTTON_3_OF_4_START, 600)
+     .setSize(BUTTON_OF_4_WIDTH, 90)
      .setColorBackground(0xff880000)
      ;
 
    cp5.addButton("Record_Only")
      .setValue(1)
-     .setPosition(510, 600)
-     .setSize(190, 90)
+     .setPosition(BUTTON_4_OF_4_START, 600)
+     .setSize(BUTTON_OF_4_WIDTH, 90)
      .setColorBackground(0xff008888);
 
    cp5.addSlider("Number_of_Cycles")
@@ -308,6 +337,15 @@ void setup() {
      ;
      
      
+   cp5.addSlider("Target_Pressure")
+     .setPosition(20, 170)
+     .setSize(50, 420)
+     .setRange(900, 1300)
+     .setValue(1040)
+     .setNumberOfTickMarks(60)
+     .setVisible(false)
+     ;
+
    cp5.addSlider("Inflation_Rate")
      .setPosition(750,100)
      .setSize(50,420)
@@ -597,6 +635,10 @@ void setup() {
 
   playScan = new PlayAudio(new SoundFile(this, "audio/scan.wav"), "Breathing Scan");
 
+  playOutro = new PlayAudio(new SoundFile(this, "audio/outro.wav"), "Outro");
+
+  setPressureInteraction = new SetPressure();
+
 //   explosive1 = new ExplosivePaInteraction(500);
 //   explosive2 = new ExplosivePaInteraction(200);
   // playfulBreathing = new PlayfulBreathing();
@@ -674,12 +716,20 @@ public void Record_Only() {
   selectInteraction(recordAll);
 }
 
+public void Inflate_To() {
+  selectInteraction(setPressureInteraction);
+}
+
 public void Introduction() {
   selectInteraction(playIntro);
 }
 
 public void Breath_Scan() {
   selectInteraction(playScan);
+}
+
+public void Outro() {
+  selectInteraction(playOutro);
 }
 
 // public void Playful_Test() {
@@ -793,6 +843,57 @@ class PlayAudio implements Interaction {
   public void teardown(ControlP5 cp5) {
     myTextarea2.setText("");
     audio.stop();
+  }
+}
+
+class SetPressure implements Interaction {
+  Controller slider;
+  Measurement initialState;
+  float target;
+  float[] diffs = new float[5];
+
+  public void prepare(Measurement initialState, ControlP5 cp5) {
+    this.slider = cp5.getController("Target_Pressure");
+    slider.setVisible(true);
+    target = slider.getValue();
+    this.initialState = initialState;
+    setDiffs(target, initialState);
+  }
+
+  private void setDiffs(float target, Measurement in) {
+    diffs[0] = target - in.pressure1;
+    diffs[1] = target - in.pressure2;
+    diffs[2] = target - in.pressure3;
+    diffs[3] = target - in.pressure4;
+    diffs[4] = target - in.pressure5;
+  }
+
+  public void teardown(ControlP5 cp5) {
+    slider.setVisible(false);
+  }
+
+  public Output run(Measurement in) {
+    if (slider.getValue() != target) {
+      target = slider.getValue();
+      setDiffs(target, in);
+    }
+    Output out = new Output(update(diffs[0], target, in.pressure1),
+                            update(diffs[1], target, in.pressure2),
+                            update(diffs[2], target, in.pressure3),
+                            update(diffs[3], target, in.pressure4),
+                            update(diffs[4], target, in.pressure5)
+                            );
+    return out;
+  }
+
+  private float update(float initialDiff, float target, float current) {
+    if (initialDiff > 0 && target - current > 0) {
+      return 10 * (float)Math.log(target - current);
+    } else if (initialDiff < 0 && target - current < 0) {
+      return 10 * -(float)Math.log(-(target - current));
+    } else {
+      return 0;
+    }
   }
 }
 
