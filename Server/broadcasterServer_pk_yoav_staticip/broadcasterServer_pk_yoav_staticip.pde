@@ -620,8 +620,21 @@ void setup() {
   countAudioFiles.add(new SoundFile(this, "audio/eight.wav"));
   countAudioFiles.add(new SoundFile(this, "audio/nine.wav"));
   countAudioFiles.add(new SoundFile(this, "audio/ten.wav"));
+  ArrayList<SoundFile> secondsAudioFiles = new ArrayList();
+  secondsAudioFiles.add(null);
+  secondsAudioFiles.add(null);
+  secondsAudioFiles.add(null);
+  secondsAudioFiles.add(null);
+  secondsAudioFiles.add(new SoundFile(this, "audio/four-seconds.wav"));
+  secondsAudioFiles.add(new SoundFile(this, "audio/five-seconds.wav"));
+  secondsAudioFiles.add(new SoundFile(this, "audio/six-seconds.wav"));
+  secondsAudioFiles.add(new SoundFile(this, "audio/seven-seconds.wav"));
+  secondsAudioFiles.add(new SoundFile(this, "audio/eight-seconds.wav"));
+  secondsAudioFiles.add(new SoundFile(this, "audio/nine-seconds.wav"));
+  secondsAudioFiles.add(new SoundFile(this, "audio/ten-seconds.wav"));
   squareBreathing = new SquareBreathing(new SoundFile(this, "audio/square-instructions.wav"),
                                         countAudioFiles,
+                                        secondsAudioFiles,
                                         new SoundFile(this, "audio/exhale.wav"),
                                         new SoundFile(this, "audio/inhale.wav"),
                                         new SoundFile(this, "audio/hold.wav"),
