@@ -104,20 +104,33 @@ class SquareBreathing extends RecordingInteraction {
     public void enter(Measurement in) {
       super.enter(in);
       println("Starting Chapter " + chapterNum);
-      int numCycles = int(cp5.getController("Number_of_Cycles").getValue());
-      CycleState cycleState = new CycleState(0, numCycles, getChapterCount(chapterNum));
-      cycleRunner = new StateMachineRunner<Measurement>(cycleState, in);
       chapterAudio = getChapterLengthAudio(chapterNum);
       if (chapterAudio != null) {
+        // The cycle runner will start playing audio on init, so we need to delay that.
+        // This is probably a bug in the cycle runner more than anything. - YL
+        println("Starting chapter audio");
         chapterAudio.play();
+      } else {
+        initCycleRunner(in);
       }
     }
 
+    private void initCycleRunner(Measurement initial) {
+      int numCycles = int(cp5.getController("Number_of_Cycles").getValue());
+      CycleState cycleState = new CycleState(0, numCycles, getChapterCount(chapterNum));
+      cycleRunner = new StateMachineRunner<Measurement>(cycleState, initial);
+    }
+
     public MeasurementState run(Measurement in) {
-      if (chapterAudio != null && chapterAudio.isPlaying()) {
+      if (chapterAudio != null &&
+          (stateTime(in) < (long)(chapterAudio.duration() * 1000) || chapterAudio.isPlaying())
+          ) {
         output = new Output(0.0);
         return this;
       } else {
+        if (cycleRunner == null) {
+          initCycleRunner(in);
+        }
         cycleRunner.run(in);
         if (cycleRunner.isRunning()) {
           return this;
@@ -144,7 +157,6 @@ class SquareBreathing extends RecordingInteraction {
 
     public void enter(Measurement in) {
       super.enter(in);
-      println("Starting Cycle " + ( currentCycle + 1 ) + " out of " + numCycles + ". Counting up to " + count);
       PhaseState beginPhase = new PhaseState(SquarePhase.INHALE, 0, count);
       phaseRunner = new StateMachineRunner<Measurement>(beginPhase, in);
     }
@@ -154,7 +166,6 @@ class SquareBreathing extends RecordingInteraction {
       if (phaseRunner.isRunning()) {
         return this;
       } else if (currentCycle < numCycles - 1) {
-        println("Phase ended, currentCycle " + ( currentCycle + 1 ) + "/" + numCycles + ", restarting phase");
         return new CycleState(currentCycle + 1, numCycles, count);
       } else {
         return null;
@@ -175,7 +186,6 @@ class SquareBreathing extends RecordingInteraction {
 
     public void enter(Measurement in) {
       super.enter(in);
-      println("In phase " + currentPhase + ", Count: " + currentCount + "/" + maxCount);
       if (currentCount == 0) {
         playPhaseAudio(currentPhase);
       } else {
@@ -212,13 +222,10 @@ class SquareBreathing extends RecordingInteraction {
       } else {
         int nextCount = (currentCount + 1) % maxCount;
         SquarePhase nextPhase = nextCount == 0 ? getNextPhase(currentPhase) : currentPhase;
-        print("Next count: " + nextCount + ", next phase: " + nextPhase);
         if (nextCount == 0 && nextPhase == SquarePhase.INHALE) {
-          println(" - end of phase");
           // We've completed a cycle!
           return null;
         } else {
-          println(" - continue phase");
           return new PhaseState(nextPhase, nextCount, maxCount);
         }
       }

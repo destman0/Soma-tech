@@ -624,7 +624,6 @@ void setup() {
   secondsAudioFiles.add(null);
   secondsAudioFiles.add(null);
   secondsAudioFiles.add(null);
-  secondsAudioFiles.add(null);
   secondsAudioFiles.add(new SoundFile(this, "audio/four-seconds.wav"));
   secondsAudioFiles.add(new SoundFile(this, "audio/five-seconds.wav"));
   secondsAudioFiles.add(new SoundFile(this, "audio/six-seconds.wav"));
