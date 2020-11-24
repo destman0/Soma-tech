@@ -231,9 +231,14 @@ class BreathMirroring extends RecordingInteraction {
                               phaseValue * diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure2, c.pressure2)),
                               phaseValue * diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure3, c.pressure3)),
                               phaseValue * diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure4, c.pressure4)),
-                              phaseValue * diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure5, c.pressure5))
+                              phaseValue * diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure5, c.pressure5)),
+                              phaseValue * diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure6, c.pressure6)),
+                              phaseValue * diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure7, c.pressure7)),
+                              phaseValue * diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure8, c.pressure8)),
+                              phaseValue * diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure9, c.pressure9)),
+                              phaseValue * diffToMotor(diff(pm.timeMs, cm.timeMs, p.pressure10, c.pressure10))
                               );
-      println("Calculated for " + i + ": " + res.toString());
+      // println("Calculated for " + i + ": " + res.toString());
       result.add(res);
     }
     return result;
@@ -246,7 +251,17 @@ class BreathMirroring extends RecordingInteraction {
   }
 
   Output getPressures(Measurement m) {
-    return new Output(m.pressure1, m.pressure2, m.pressure3, m.pressure4, m.pressure5);
+    return new Output(m.pressure1,
+                      m.pressure2,
+                      m.pressure3,
+                      m.pressure4,
+                      m.pressure5,
+                      m.pressure6,
+                      m.pressure7,
+                      m.pressure8,
+                      m.pressure9,
+                      m.pressure10
+                      );
   }
 
   <T> List<List<T>> sliding(List<T> in, int size) {
@@ -261,10 +276,15 @@ class BreathMirroring extends RecordingInteraction {
     ArrayList<Output> res = new ArrayList(ms.size());
     for (Measurement m : ms) {
       res.add(new Output(m.pressure1,
-                        m.pressure2,
-                        m.pressure3,
-                        m.pressure4,
-                        m.pressure5
+                         m.pressure2,
+                         m.pressure3,
+                         m.pressure4,
+                         m.pressure5,
+                         m.pressure6,
+                         m.pressure7,
+                         m.pressure8,
+                         m.pressure9,
+                         m.pressure10
                         ));
     }
     return res;
@@ -280,6 +300,11 @@ class BreathMirroring extends RecordingInteraction {
     res.pressure3 /= xs.size();
     res.pressure4 /= xs.size();
     res.pressure5 /= xs.size();
+    res.pressure6 /= xs.size();
+    res.pressure7 /= xs.size();
+    res.pressure8 /= xs.size();
+    res.pressure9 /= xs.size();
+    res.pressure10 /= xs.size();
     return res;
   }
 

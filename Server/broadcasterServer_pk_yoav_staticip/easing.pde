@@ -18,12 +18,22 @@ boolean adjustPressureTo(float goal, Measurement values) {
     if (values.pressure3 != 0.0) adjustPressure(values.pressure3, goal, 3);
     if (values.pressure4 != 0.0) adjustPressure(values.pressure4, goal, 4);
     if (values.pressure5 != 0.0) adjustPressure(values.pressure5, goal, 5);
+    if (values.pressure6 != 0.0) adjustPressure(values.pressure6, goal, 6);
+    if (values.pressure7 != 0.0) adjustPressure(values.pressure7, goal, 7);
+    if (values.pressure8 != 0.0) adjustPressure(values.pressure8, goal, 8);
+    if (values.pressure9 != 0.0) adjustPressure(values.pressure9, goal, 9);
+    if (values.pressure10 != 0.0) adjustPressure(values.pressure10, goal, 10);
 
     return ((values.pressure1 == 0.0 || abs(values.pressure1 - goal) <= GOAL_TOLERANCE )
             && (values.pressure2 == 0.0 || abs(values.pressure2 - goal) <= GOAL_TOLERANCE )
             && (values.pressure3 == 0.0 || abs(values.pressure3 - goal) <= GOAL_TOLERANCE )
             && (values.pressure4 == 0.0 || abs(values.pressure4 - goal) <= GOAL_TOLERANCE )
             && (values.pressure5 == 0.0 || abs(values.pressure5 - goal) <= GOAL_TOLERANCE )
+            && (values.pressure6 == 0.0 || abs(values.pressure6 - goal) <= GOAL_TOLERANCE )
+            && (values.pressure7 == 0.0 || abs(values.pressure7 - goal) <= GOAL_TOLERANCE )
+            && (values.pressure8 == 0.0 || abs(values.pressure8 - goal) <= GOAL_TOLERANCE )
+            && (values.pressure9 == 0.0 || abs(values.pressure9 - goal) <= GOAL_TOLERANCE )
+            && (values.pressure10 == 0.0 || abs(values.pressure10 - goal) <= GOAL_TOLERANCE )
             );
 }
 
