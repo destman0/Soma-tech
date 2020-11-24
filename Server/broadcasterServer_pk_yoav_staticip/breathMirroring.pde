@@ -333,3 +333,33 @@ float readFloat(String from,float defaultValue){
     return defaultValue;
   }
 }
+
+float[] squareWindow(int size) {
+  float[] window = new float[size];
+  Array.fill(window, 1.0 / size);
+  return window;
+}
+
+float[] hammingWindow(int size) {
+  float [] window = new float[size];
+  for (int i = 0; i < size; i++) {
+    window[i] = (25f/46f) * (1 - Math.cos((2 * Math.PI * i)/size));
+  }
+  return window;
+}
+
+List<Float> convolve(List<Float> xs, float[] window) {
+  ArrayList<Float> result = new ArrayList(xs.size());
+  for (int i = 0; i < xs.size(); i++) {
+    for (int j = 0; j < window.size(); j++) {
+      int k = i + j - (Math.floor(window.size() / 2));
+      if (k < 0 || k >= xs.size()) continue;
+      result.set(i, xs[k] * window[j] + result.get(i));
+    }
+  }
+  return result;
+}
+
+List<Out> map<In,Out>(List<In> xs, Function<In, Out> f) {
+  
+}
