@@ -217,10 +217,16 @@ void setup() {
    */
   cp5.addButton("Pomodoro")
     .setValue(100)
+    .setPosition(100, 50)
+    .setSize(600, 90)
+    ;
+    
+   cp5.addButton("Pomodoro_Hard")
+    .setValue(0)
     .setPosition(100, 150)
     .setSize(600, 90)
     ;
-
+    
   cp5.addButton("HRV_Interaction")
     .setValue(0)
     .setPosition(100, 250)
@@ -420,6 +426,7 @@ enum SelectedInteraction {
     FollowBreathing2,
     SlowBreathing,
     SquareBreathing,
+    SquareBreathingHard,
     InflateAll,
     DeflateAll,
     StopAll
@@ -469,6 +476,19 @@ public void onInteractionChanged(SelectedInteraction newSelect) {
     cp5.getController("Deflation_Rate").setVisible(true);
     cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
     break;
+    
+  case SquareBreathingHard:
+    interaction_part = 0;
+    interactionstarted = false;
+    cp5.getController("Number_of_Cycles").setVisible(false);
+    cp5.getController("Duration_of_Exercise").setVisible(true);
+
+    cp5.getController("Inflation_Rate").setVisible(true);
+    cp5.getController("Deflation_Rate").setVisible(true);
+    cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
+    break;
+    
+    
 
   case InflateAll:
     cp5.getController("Number_of_Cycles").setVisible(false);
@@ -502,19 +522,17 @@ public void onInteractionChanged(SelectedInteraction newSelect) {
   selection = newSelect;
 }
 
-public void Breath_Mirroring_1() {
-  if (selection != SelectedInteraction.NotReady && selection != SelectedInteraction.FollowBreathing1) {
-    instructionsAudioPath =  "Breathing-1-instructions.mp3";
-    exerciseAudioPath =  "Breathing-1-exercise.mp3";
-    onInteractionChanged(SelectedInteraction.FollowBreathing1);
-  }
-}
+//public void Breath_Mirroring_1() {
+//  if (selection != SelectedInteraction.NotReady && selection != SelectedInteraction.FollowBreathing1) {
+//    instructionsAudioPath =  "Breathing-1-instructions.mp3";
+//    exerciseAudioPath =  "Breathing-1-exercise.mp3";
+//    onInteractionChanged(SelectedInteraction.FollowBreathing1);
+//  }
+//}
 
-public void Breath_Mirroring_2() {
-  if (selection != SelectedInteraction.NotReady && selection != SelectedInteraction.FollowBreathing2) {
-    instructionsAudioPath =  "Breathing-2-instructions.mp3";
-    exerciseAudioPath =  "Breathing-2-exercise.mp3";
-    onInteractionChanged(SelectedInteraction.FollowBreathing2);
+public void Pomodoro_Hard() {
+  if (selection != SelectedInteraction.NotReady && selection != SelectedInteraction.SquareBreathingHard) {
+    onInteractionChanged(SelectedInteraction.SquareBreathingHard);
   }
 }
 
@@ -627,6 +645,9 @@ void draw() {
   case SquareBreathing:
     interaction_Three();
     break;
+  case SquareBreathingHard:
+    interaction_Four();
+    break;  
   case InflateAll:
     inflating_Units();
     break;
@@ -640,6 +661,11 @@ void draw() {
     break;
   }
 }
+
+
+
+
+
 
 
 
@@ -780,13 +806,13 @@ void interaction_Three() {
 interactioncurrenttime = System.currentTimeMillis();
 phasedur = 3000;
 phasetime = (int)(interactioncurrenttime - interactionstarttime);
-if (phasetime < 3000) {
+if (phasetime < 36000) {
   phase = 0;
-} else if (phasetime >= 3000 && phasetime <= 3000 + pomodoro_duration) {
+} else if (phasetime >= 36000 && phasetime <= 36000 + pomodoro_duration) {
   phase = 1;
-} else if (phasetime >= 3000 + pomodoro_duration && phasetime <= 6000 + pomodoro_duration) {
+} else if (phasetime >= 36000 + pomodoro_duration && phasetime <= 36000 + pomodoro_duration) {
   phase = 2;
-} else if (phasetime > 6000 + pomodoro_duration) {
+} else if (phasetime > 36000 + pomodoro_duration) {
   phase = 3;
 }
 
@@ -861,6 +887,143 @@ if (phasetime < 3000) {
     sendToAllActuators(myMessage1);
   }
 }
+
+
+void interaction_Four() {
+  //+++++++++++++++++++++++++++++++++Equal / Square Breathing++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  pomodoro_duration = int((cp5.getController("Duration_of_Exercise").getValue())*10000);
+  //n_cycles = int(cp5.getController("Number_of_Cycles").getValue());
+  n_cycles = 1;
+  if (interaction_part==0) {
+
+    if (interactionstarted==false) {
+      interactionstarttime = System.currentTimeMillis();
+      interactionstarted = true;
+    }
+
+    interactioncurrenttime = System.currentTimeMillis();
+
+    if ((interactioncurrenttime - interactionstarttime)<10000) {
+      myTextarea2.setText("The next exercise we are going to do is very much based on a yoga breathing exercise. We are going to inhale, hold our breath, exhale and hold our breath. And we are going to do that on the increasing number counts.");
+      OscMessage myMessage1;
+      myMessage1 = new OscMessage("/actuator/inflate");
+      myMessage1.add(0.0);
+      sendToAllActuators(myMessage1);
+    } else {
+      interaction_part = 1;
+      interactionstarted=false;
+    }
+  }
+
+  if (interaction_part==1) {
+   
+      if (interactionstarted==false) {
+        interactionstarttime = System.currentTimeMillis();
+        interactionstarted = true;
+      }
+
+
+      /*if (interaction_part==1) {
+       if (duration_chapter<4){
+       if (current_cycle<n_cycles){
+       if(interactionstarted==false){
+       interactionstarttime = System.currentTimeMillis();
+       interactionstarted = true;
+       }
+       */
+
+
+interactioncurrenttime = System.currentTimeMillis();
+phasedur = 3000;
+phasetime = (int)(interactioncurrenttime - interactionstarttime);
+if (phasetime < 36000) {
+  phase = 0;
+} else if (phasetime >= 36000 && phasetime <= 36000 + pomodoro_duration) {
+  phase = 1;
+} else if (phasetime >= 36000 + pomodoro_duration && phasetime <= 36000 + pomodoro_duration) {
+  phase = 2;
+} else if (phasetime > 36000 + pomodoro_duration) {
+  phase = 3;
+}
+
+
+  OscMessage myMessage1;
+  myMessage1 = new OscMessage("/actuator/inflate");
+
+
+
+  switch (phase)
+  {
+
+    case 0: 
+        //println("Inhale"); 
+        if(in_phase){
+        myMessage1.add(-(cp5.getController("Deflation_Rate").getValue()));   
+        
+        }
+        else{
+        myMessage1.add((cp5.getController("Inflation_Rate").getValue()));  
+        }  
+        sendToAllActuators(myMessage1);
+        myTextarea2.setText("INHALE    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
+    break;
+  case 1: 
+        //println("Hold");  
+        myMessage1.add(0.0); 
+        sendToAllActuators(myMessage1);
+        myTextarea2.setText("HOLD    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
+    break;
+  case 2:
+
+        //println("Exhale");  
+        if(in_phase){
+        myMessage1.add(cp5.getController("Inflation_Rate").getValue());
+        }
+        else {
+        myMessage1.add(-(cp5.getController("Deflation_Rate").getValue())); 
+        }
+        sendToAllActuators(myMessage1);
+        myTextarea2.setText("EXHALE    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
+    break;
+   case 3:
+
+        //println("Hold");  
+        interaction_part = 2;
+        interactionstarted=false;
+    break;
+  }
+        
+       }    
+
+
+
+      // That is debugging information, please unqote, if the interaction goes somewhere....
+      /*
+  myTextarea2.setText("Start time:    "+(interactionstarttime) + " \n\n" +
+       "Current time:    "+(interactioncurrenttime)+ " \n\n" +
+       "Delta:    "+(interactioncurrenttime - interactionstarttime) + " \n\n" +
+       "Phase:    "+((interactioncurrenttime - interactionstarttime)/phasedur) +" \n\n" +
+       "Cycle:    "+(current_cycle) + " \n\n" +
+       "Duration Chapter:   " +(duration_chapter)+ " \n\n" +
+       "Duration:    " + (phasedur));
+       */
+
+
+      
+  if (interaction_part==2) {
+    myTextarea2.setText("And this is the end of the exercise!");
+    OscMessage myMessage1;
+    myMessage1 = new OscMessage("/actuator/inflate");
+    myMessage1.add(0.0);
+    sendToAllActuators(myMessage1);
+  }
+}
+
+
+
+
+
+
 
 void inflating_Units() {
 
