@@ -165,7 +165,7 @@ String riotPattern= "/0/";
 ControlP5 cp5;
 
 Textarea myTextarea1, myTextarea2;
-Knob myKnobA;
+Knob myKnobA, myKnobB, myKnobC, myKnobD;
 
 
 PrintWriter output;
@@ -192,6 +192,7 @@ int interaction_part = 0;
 long phasedur;
 long slow_breathing_duration;
 long pomodoro_duration;
+long activation_duration, deactivation_duration;
 
 
 
@@ -313,15 +314,14 @@ void setup() {
   ;
 
   myTextarea2 = cp5.addTextarea("instructions")
-    .setPosition(950, 100)
-    .setSize(600, 600)
-    .setFont(createFont("arial", 50))
+    .setPosition(1150, 50)
+    .setSize(400, 400)
+    .setFont(createFont("arial", 20))
     .setLineHeight(50)
     .setColor(color(128))
     .setColorBackground(color(255, 100))
     .setColorForeground(color(255, 100));
   ;
-
 
 
   myKnobA = cp5.addKnob("Inhale_or_Exhale_Duration")
@@ -335,6 +335,42 @@ void setup() {
     .setDragDirection(Knob.HORIZONTAL)
     .setVisible(false)
     ;
+    
+  myKnobB = cp5.addKnob("Pomodoro_Duration")
+               .setRange(10,50)
+               .setValue(25)
+               .setPosition(750,600)
+               .setRadius(70)
+               .setNumberOfTickMarks(8)
+               .setTickMarkLength(4)
+               .snapToTickMarks(true)
+               .setDragDirection(Knob.HORIZONTAL)
+               .setVisible(false)
+               ;   
+               
+  myKnobC = cp5.addKnob("Activation_Duration")
+               .setRange(3,40)
+               .setValue(36)
+               .setPosition(900,600)
+               .setRadius(70)
+               .setNumberOfTickMarks(37)
+               .setTickMarkLength(4)
+               .snapToTickMarks(true)
+               .setDragDirection(Knob.HORIZONTAL)
+               .setVisible(false)
+               ;  
+               
+  myKnobD = cp5.addKnob("Deactivation_Duration")
+               .setRange(3,40)
+               .setValue(36)
+               .setPosition(1050,600)
+               .setRadius(70)
+               .setNumberOfTickMarks(37)
+               .setTickMarkLength(4)
+               .snapToTickMarks(true)
+               .setDragDirection(Knob.HORIZONTAL)
+               .setVisible(false)
+               ;  
 
   cp5.addToggle("in_phase")
     .setPosition(20, 100)
@@ -465,27 +501,36 @@ public void onInteractionChanged(SelectedInteraction newSelect) {
     cp5.getController("Inflation_Rate").setVisible(true);
     cp5.getController("Deflation_Rate").setVisible(true);
     cp5.getController("Inhale_or_Exhale_Duration").setVisible(true);
+    cp5.getController("Pomodoro_Duration").setVisible(false);
+    cp5.getController("Activation_Duration").setVisible(false);
+    cp5.getController("Deactivation_Duration").setVisible(false);
     break;
   case SquareBreathing:
     interaction_part = 0;
     interactionstarted = false;
     cp5.getController("Number_of_Cycles").setVisible(false);
-    cp5.getController("Duration_of_Exercise").setVisible(true);
+    cp5.getController("Duration_of_Exercise").setVisible(false);
 
     cp5.getController("Inflation_Rate").setVisible(true);
     cp5.getController("Deflation_Rate").setVisible(true);
     cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
+    cp5.getController("Pomodoro_Duration").setVisible(true);
+    cp5.getController("Activation_Duration").setVisible(true);
+    cp5.getController("Deactivation_Duration").setVisible(true);
     break;
     
   case SquareBreathingHard:
     interaction_part = 0;
     interactionstarted = false;
     cp5.getController("Number_of_Cycles").setVisible(false);
-    cp5.getController("Duration_of_Exercise").setVisible(true);
+    cp5.getController("Duration_of_Exercise").setVisible(false);
 
     cp5.getController("Inflation_Rate").setVisible(true);
     cp5.getController("Deflation_Rate").setVisible(true);
     cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
+    cp5.getController("Pomodoro_Duration").setVisible(true);
+    cp5.getController("Activation_Duration").setVisible(true);
+    cp5.getController("Deactivation_Duration").setVisible(true);
     break;
     
     
@@ -497,6 +542,9 @@ public void onInteractionChanged(SelectedInteraction newSelect) {
     cp5.getController("Inflation_Rate").setVisible(false);
     cp5.getController("Deflation_Rate").setVisible(false);
     cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
+    cp5.getController("Pomodoro_Duration").setVisible(false);
+    cp5.getController("Activation_Duration").setVisible(false);
+    cp5.getController("Deactivation_Duration").setVisible(false);
     break;
 
 
@@ -507,6 +555,9 @@ public void onInteractionChanged(SelectedInteraction newSelect) {
     cp5.getController("Inflation_Rate").setVisible(false);
     cp5.getController("Deflation_Rate").setVisible(false);
     cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
+    cp5.getController("Pomodoro_Duration").setVisible(false);
+    cp5.getController("Activation_Duration").setVisible(false);
+    cp5.getController("Deactivation_Duration").setVisible(false);
     break;
   case StopAll:
     cp5.getController("Number_of_Cycles").setVisible(false);
@@ -515,6 +566,9 @@ public void onInteractionChanged(SelectedInteraction newSelect) {
     cp5.getController("Inflation_Rate").setVisible(false);
     cp5.getController("Deflation_Rate").setVisible(false);
     cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
+    cp5.getController("Pomodoro_Duration").setVisible(false);
+    cp5.getController("Activation_Duration").setVisible(false);
+    cp5.getController("Deactivation_Duration").setVisible(false);
     break;
   default:
     break;
@@ -760,8 +814,10 @@ void interaction_Two() {
 }
 
 void interaction_Three() {
-  //+++++++++++++++++++++++++++++++++Equal / Square Breathing++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  pomodoro_duration = int((cp5.getController("Duration_of_Exercise").getValue())*10000);
+  //+++++++++++++++++++++++++++++++++Normal Pomodoro++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  pomodoro_duration = int((cp5.getController("Pomodoro_Duration").getValue())*60*1000);
+  activation_duration = int((cp5.getController("Activation_Duration").getValue())*1000);
+  deactivation_duration = int((cp5.getController("Deactivation_Duration").getValue())*1000);
   //n_cycles = int(cp5.getController("Number_of_Cycles").getValue());
   n_cycles = 1;
   if (interaction_part==0) {
@@ -806,13 +862,13 @@ void interaction_Three() {
 interactioncurrenttime = System.currentTimeMillis();
 phasedur = 3000;
 phasetime = (int)(interactioncurrenttime - interactionstarttime);
-if (phasetime < 36000) {
+if (phasetime < activation_duration) {
   phase = 0;
-} else if (phasetime >= 36000 && phasetime <= 36000 + pomodoro_duration) {
+} else if (phasetime >= activation_duration && phasetime < activation_duration + pomodoro_duration) {
   phase = 1;
-} else if (phasetime >= 36000 + pomodoro_duration && phasetime <= 36000 + pomodoro_duration) {
+} else if (phasetime >= activation_duration + pomodoro_duration && phasetime < activation_duration + pomodoro_duration + deactivation_duration) {
   phase = 2;
-} else if (phasetime > 36000 + pomodoro_duration) {
+} else if (phasetime >= activation_duration + pomodoro_duration + deactivation_duration) {
   phase = 3;
 }
 
@@ -835,12 +891,14 @@ if (phasetime < 36000) {
         }  
         sendToAllActuators(myMessage1);
         myTextarea2.setText("INHALE    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
+        //myTextarea2.setText("INHALE    "+(phasetime));
     break;
   case 1: 
         //println("Hold");  
         myMessage1.add(0.0); 
         sendToAllActuators(myMessage1);
-        myTextarea2.setText("HOLD    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
+        myTextarea2.setText("HOLD    "+(interactioncurrenttime+3000-(phase*phasedur+interactionstarttime)-36000)/1000);
+        //myTextarea2.setText("HOLD    "+(phasetime));
     break;
   case 2:
 
@@ -890,8 +948,10 @@ if (phasetime < 36000) {
 
 
 void interaction_Four() {
-  //+++++++++++++++++++++++++++++++++Equal / Square Breathing++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  pomodoro_duration = int((cp5.getController("Duration_of_Exercise").getValue())*10000);
+  //+++++++++++++++++++++++++++++++++Pomodoro Hard++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  pomodoro_duration = int((cp5.getController("Pomodoro_Duration").getValue())*60*1000);
+  activation_duration = int((cp5.getController("Activation_Duration").getValue())*1000);
+  deactivation_duration = int((cp5.getController("Deactivation_Duration").getValue())*1000);
   //n_cycles = int(cp5.getController("Number_of_Cycles").getValue());
   n_cycles = 1;
   if (interaction_part==0) {
@@ -936,13 +996,13 @@ void interaction_Four() {
 interactioncurrenttime = System.currentTimeMillis();
 phasedur = 3000;
 phasetime = (int)(interactioncurrenttime - interactionstarttime);
-if (phasetime < 36000) {
+if (phasetime < activation_duration) {
   phase = 0;
-} else if (phasetime >= 36000 && phasetime <= 36000 + pomodoro_duration) {
+} else if (phasetime >= activation_duration && phasetime < activation_duration + pomodoro_duration) {
   phase = 1;
-} else if (phasetime >= 36000 + pomodoro_duration && phasetime <= 36000 + pomodoro_duration) {
+} else if (phasetime >= activation_duration + pomodoro_duration && phasetime < activation_duration + pomodoro_duration + deactivation_duration) {
   phase = 2;
-} else if (phasetime > 36000 + pomodoro_duration) {
+} else if (phasetime >= activation_duration + pomodoro_duration + deactivation_duration) {
   phase = 3;
 }
 
