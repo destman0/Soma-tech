@@ -231,13 +231,13 @@ void setup() {
   cp5.addButton("HRV_Interaction")
     .setValue(0)
     .setPosition(100, 250)
-    .setSize(280, 90)
+    .setSize(295, 90)
     ;
     
     cp5.addButton("HRV_Interaction_Async")
     .setValue(0)
-    .setPosition(400, 250)
-    .setSize(280, 90)
+    .setPosition(405, 250)
+    .setSize(295, 90)
     ;  
 
   cp5.addButton("Inflate_All_Pillows")
