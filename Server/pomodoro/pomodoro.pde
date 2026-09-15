@@ -954,7 +954,6 @@ void interaction_Three() {
 
 
 interactioncurrenttime = System.currentTimeMillis();
-phasedur = 3000;
 phasetime = (int)(interactioncurrenttime - interactionstarttime);
 if (phasetime < activation_duration) {
   phase = 0;
@@ -981,14 +980,14 @@ if (phasetime < activation_duration) {
         //println("Inhale"); 
         myMessage1.add((cp5.getController("Inflation_Rate").getValue()));   
         sendToAllActuators(myMessage1);
-        myTextarea2.setText("INHALE    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
+        myTextarea2.setText("INHALE    "+(interactioncurrenttime-interactionstarttime)/1000);
         //myTextarea2.setText("INHALE    "+(phasetime));
     break;
   case 1: 
         //println("Hold");  
         myMessage1.add(0.0); 
         sendToAllActuators(myMessage1);
-        myTextarea2.setText("HOLD    "+(interactioncurrenttime+3000-(phase*phasedur+interactionstarttime)-36000)/1000);
+        myTextarea2.setText("HOLD    "+(interactioncurrenttime-interactionstarttime-activation_duration)/1000);
         //myTextarea2.setText("HOLD    "+(phasetime));
     break;
   case 2:
@@ -996,12 +995,12 @@ if (phasetime < activation_duration) {
         //println("Exhale");  
         myMessage1.add(-(cp5.getController("Deflation_Rate").getValue())); 
         sendToAllActuators(myMessage1);
-        myTextarea2.setText("EXHALE    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
+        myTextarea2.setText("EXHALE    "+(interactioncurrenttime-interactionstarttime-activation_duration-pomodoro_duration)/1000);
     break;
    case 3:
         myMessage1.add(0.0); 
         sendToAllActuators(myMessage1);
-        myTextarea2.setText("REST    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
+        myTextarea2.setText("REST    "+(interactioncurrenttime-interactionstarttime-activation_duration-pomodoro_duration-deactivation_duration)/1000);
     break;
    case 4:
 
@@ -1112,13 +1111,13 @@ if (phasetime < activation_duration) {
         //println("Inhale"); 
         myMessage1.add(-(cp5.getController("Deflation_Rate").getValue()));    
         sendToAllActuators(myMessage1);
-        myTextarea2.setText("INHALE    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
+        myTextarea2.setText("INHALE    "+(interactioncurrenttime-interactionstarttime)/1000);
     break;
   case 1: 
         //println("Hold");  
         myMessage1.add(0.0); 
         sendToAllActuators(myMessage1);
-        myTextarea2.setText("HOLD    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
+        myTextarea2.setText("HOLD    "+(interactioncurrenttime-interactionstarttime-activation_duration)/1000);
     break;
   case 2:
 
@@ -1126,12 +1125,12 @@ if (phasetime < activation_duration) {
        
         myMessage1.add(cp5.getController("Inflation_Rate").getValue());
         sendToAllActuators(myMessage1);
-        myTextarea2.setText("EXHALE    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
+        myTextarea2.setText("EXHALE    "+(interactioncurrenttime-interactionstarttime-activation_duration-pomodoro_duration)/1000);
     break;
    case 3:
         myMessage1.add(0.0); 
         sendToAllActuators(myMessage1);
-        myTextarea2.setText("REST    "+(interactioncurrenttime+1000-(phase*phasedur+interactionstarttime))/1000);
+        myTextarea2.setText("REST    "+(interactioncurrenttime-interactionstarttime-activation_duration-pomodoro_duration-deactivation_duration)/1000);
     break;
    case 4:
 
