@@ -140,9 +140,9 @@ Map<String, Device> getSensors() {
 NetAddress wekinator;
 
 //data structure to hold all sensor data
-HashMap<String, Object[]> sensorInputs = new HashMap<String, Object[]>();
+Map<String, Object[]> sensorInputs = new java.util.concurrent.ConcurrentHashMap<String, Object[]>();
 
-HashMap<String, Object[]> actuatorInputs = new HashMap<String, Object[]>();
+Map<String, Object[]> actuatorInputs = new java.util.concurrent.ConcurrentHashMap<String, Object[]>();
 
 int buttonStatus = 0;
 
@@ -200,23 +200,19 @@ void setup() {
   wekinator = new NetAddress("127.0.0.1", 6448);
 
   // connectActuator("127.0.0.1");
-  size(1600, 800);
+  size(1280, 860);
   smooth();
 
   noStroke();
   cp5 = new ControlP5(this);
 
 
-
-
   cp5.addButton("Start")
-    .setValue(0)
-    .setPosition(100, 250)
-    .setSize(295, 90)
+    .setValue(100)
+    .setPosition(100, 50)
+    .setSize(600, 90)
     ;
     
-
-
   cp5.addButton("Inflate_All_Pillows")
     .setValue(100)
     .setPosition(100, 350)
@@ -237,17 +233,6 @@ void setup() {
     .setSize(600, 90)
     //.setColor(cc)
     .setColorBackground(0xff880000)
-    ;
-
-
-
-  cp5.addSlider("Duration_of_Exercise")
-    .setPosition(20, 170)
-    .setSize(50, 420)
-    .setRange(1, 60)
-    .setValue(15)
-    .setNumberOfTickMarks(60)
-    .setVisible(false)
     ;
 
 
@@ -299,21 +284,58 @@ void setup() {
   ;
 
 
-  myKnobA = cp5.addKnob("Inhale_or_Exhale_Duration")
-    .setRange(5, 7)
-    .setValue(5.45)
-    .setPosition(750, 600)
-    .setRadius(70)
-    .setNumberOfTickMarks(40)
-    .setTickMarkLength(4)
-    .snapToTickMarks(true)
-    .setDragDirection(Knob.HORIZONTAL)
-    .setVisible(false)
-    ;
     
+  myKnobB = cp5.addKnob("Pomodoro_Duration")
+               .setRange(1,50)
+               .setValue(25)
+               .setPosition(750,600)
+               .setRadius(70)
+               .setNumberOfTickMarks(8)
+               .setTickMarkLength(4)
+               .snapToTickMarks(true)
+               .setDragDirection(Knob.HORIZONTAL)
+               .setVisible(false)
+               ;   
+               
+  myKnobC = cp5.addKnob("Rest_Duration")
+               .setRange(1,20)
+               .setValue(5)
+               .setPosition(900,600)
+               .setRadius(70)
+               .setNumberOfTickMarks(15)
+               .setTickMarkLength(4)
+               .snapToTickMarks(true)
+               .setDragDirection(Knob.HORIZONTAL)
+               .setVisible(false)
+               ;  
+               
+  myKnobD = cp5.addKnob("Activation_Duration")
+               .setRange(3,50)
+               .setValue(36)
+               .setPosition(1050,600)
+               .setRadius(70)
+               .setNumberOfTickMarks(37)
+               .setTickMarkLength(4)
+               .snapToTickMarks(true)
+               .setDragDirection(Knob.HORIZONTAL)
+               .setVisible(false)
+               ;   
+
+  myKnobD = cp5.addKnob("Deactivation_Duration")
+               .setRange(3,50)
+               .setValue(36)
+               .setPosition(1200,600)
+               .setRadius(70)
+               .setNumberOfTickMarks(37)
+               .setTickMarkLength(4)
+               .snapToTickMarks(true)
+               .setDragDirection(Knob.HORIZONTAL)
+               .setVisible(false)
+               ; 
 
 
-
+  cp5.setAutoDraw(false);
+  setupSole();
   selection = SelectedInteraction.Nothing;
 
   frameRate(60);
@@ -393,7 +415,7 @@ public void EndFile(int theValue) {
 enum SelectedInteraction {
   NotReady,
     Nothing,
-    SlowBreathing,
+    Pomodoro,
     InflateAll,
     DeflateAll,
     StopAll
@@ -404,51 +426,53 @@ SelectedInteraction selection = SelectedInteraction.NotReady;
 public void onInteractionChanged(SelectedInteraction newSelect) {
   switch (newSelect) {
   case Nothing:
-  
+    cp5.getController("Number_of_Cycles").setVisible(false);
     cp5.getController("Duration_of_Exercise").setVisible(false);
 
     cp5.getController("Inflation_Rate").setVisible(false);
     cp5.getController("Deflation_Rate").setVisible(false);
     cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
     break;
-  case SlowBreathing:
+  case Pomodoro:
     interaction_part = 0;
     interactionstarted = false;
-    cp5.getController("Duration_of_Exercise").setVisible(true);
 
     cp5.getController("Inflation_Rate").setVisible(true);
     cp5.getController("Deflation_Rate").setVisible(true);
-    cp5.getController("Inhale_or_Exhale_Duration").setVisible(true);
+    cp5.getController("Pomodoro_Duration").setVisible(true);
+    cp5.getController("Rest_Duration").setVisible(true);
+    cp5.getController("Activation_Duration").setVisible(true);
+    cp5.getController("Deactivation_Duration").setVisible(true);
     break;
     
- 
-
-
   case InflateAll:
-    cp5.getController("Duration_of_Exercise").setVisible(false);
 
     cp5.getController("Inflation_Rate").setVisible(false);
     cp5.getController("Deflation_Rate").setVisible(false);
-    cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
-
+    cp5.getController("Pomodoro_Duration").setVisible(false);
+    cp5.getController("Rest_Duration").setVisible(false);
+    cp5.getController("Activation_Duration").setVisible(false);
+    cp5.getController("Deactivation_Duration").setVisible(false);
     break;
 
 
   case DeflateAll:
-    cp5.getController("Duration_of_Exercise").setVisible(false);
 
     cp5.getController("Inflation_Rate").setVisible(false);
     cp5.getController("Deflation_Rate").setVisible(false);
-    cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
-    
+    cp5.getController("Pomodoro_Duration").setVisible(false);
+    cp5.getController("Rest_Duration").setVisible(false);
+    cp5.getController("Activation_Duration").setVisible(false);
+    cp5.getController("Deactivation_Duration").setVisible(false);
     break;
+    
   case StopAll:
-    cp5.getController("Duration_of_Exercise").setVisible(false);
-
     cp5.getController("Inflation_Rate").setVisible(false);
     cp5.getController("Deflation_Rate").setVisible(false);
-    cp5.getController("Inhale_or_Exhale_Duration").setVisible(false);
-
+    cp5.getController("Pomodoro_Duration").setVisible(false);
+    cp5.getController("Rest_Duration").setVisible(false);
+    cp5.getController("Activation_Duration").setVisible(false);
+    cp5.getController("Deactivation_Duration").setVisible(false);
     break;
   default:
     break;
@@ -458,15 +482,11 @@ public void onInteractionChanged(SelectedInteraction newSelect) {
 
 
 
-
 public void Start() {
-  if (selection != SelectedInteraction.NotReady && selection != SelectedInteraction.SlowBreathing) {
-    onInteractionChanged(SelectedInteraction.SlowBreathing);
+  if (selection != SelectedInteraction.NotReady && selection != SelectedInteraction.Pomodoro) {
+    onInteractionChanged(SelectedInteraction.Pomodoro);
   }
 }
-
-
-
 
 public void Deflate_All_Pillows() {
   if (selection != SelectedInteraction.NotReady && selection != SelectedInteraction.DeflateAll) {
@@ -551,9 +571,10 @@ void draw() {
     + "Button state:                       " + buttonStatus
     );
 
+  if (uiPaused) { stopping_Units(); drawSole(); return; }
   switch (selection) {
-  case SlowBreathing:
-    interaction_Two();
+  case Pomodoro:
+    interaction_Three();
     break;
   case InflateAll:
     inflating_Units();
@@ -567,13 +588,22 @@ void draw() {
   default:
     break;
   }
+  drawSole();
 }
 
 
-void interaction_Two(){
-// +++++++++++++++++++++++++++++++++++Slow HRV breathing++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  slow_breathing_duration = int(cp5.getController("Duration_of_Exercise").getValue());
 
+
+
+
+void interaction_Three() {
+  //+++++++++++++++++++++++++++++++++Normal Pomodoro++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  pomodoro_duration = int((cp5.getController("Pomodoro_Duration").getValue())*60*1000);
+  rest_duration = int((cp5.getController("Rest_Duration").getValue())*60*1000);
+  activation_duration = int((cp5.getController("Activation_Duration").getValue())*1000);
+  deactivation_duration = int((cp5.getController("Deactivation_Duration").getValue())*1000);
+  //n_cycles = int(cp5.getController("Number_of_Cycles").getValue());
+  n_cycles = 1;
   if (interaction_part==0) {
 
     if (interactionstarted==false) {
@@ -584,7 +614,7 @@ void interaction_Two(){
     interactioncurrenttime = System.currentTimeMillis();
 
     if ((interactioncurrenttime - interactionstarttime)<10000) {
-      myTextarea2.setText("In this interaction we would like you to do your everyday latop activities, while wearing the artefact");
+      myTextarea2.setText("Please get ready for the Pomodoro experience");
       OscMessage myMessage1;
       myMessage1 = new OscMessage("/actuator/inflate");
       myMessage1.add(0.0);
@@ -596,53 +626,97 @@ void interaction_Two(){
   }
 
   if (interaction_part==1) {
-    if (interactionstarted==false) {
-      interactionstarttime = System.currentTimeMillis();
-      longinteractionstarttime = System.currentTimeMillis();
-      interactionstarted = true;
-    }
-
-    if ((interactioncurrenttime - longinteractionstarttime)<(slow_breathing_duration*60000)) {
-      interactioncurrenttime = System.currentTimeMillis();
-      phasedur = int(cp5.getController("Inhale_or_Exhale_Duration").getValue()*1000);
-      phase = (int)((interactioncurrenttime - interactionstarttime)/phasedur);
-
-      OscMessage myMessage1;
-      myMessage1 = new OscMessage("/actuator/inflate");
-
-      switch (phase)
-      {
-
-      case 0:
-        //println("Inhale");
-        myMessage1.add(cp5.getController("Inflation_Rate").getValue());
-        sendToAllActuators(myMessage1);
-        //myTextarea2.setText("INHALE  "+(interactioncurrenttime-(phase*phasedur+interactionstarttime))/1000);
-        break;
-      case 1:
-        //println("Exhale");
-        myMessage1.add(-(cp5.getController("Deflation_Rate").getValue()));
-        sendToAllActuators(myMessage1);
-        //myTextarea2.setText("HOLD "+(interactioncurrenttime-(phase*phasedur+interactionstarttime))/1000);
-        break;
+   
+      if (interactionstarted==false) {
+        interactionstarttime = System.currentTimeMillis();
+        interactionstarted = true;
       }
 
-      myTextarea2.setText("Long interacton start time:    "+(longinteractionstarttime) + " \n\n" +
-        "Phase start time:    "+(interactionstarttime)+ " \n\n" +
-        "Current time:    "+(interactioncurrenttime)+ " \n\n" +
-        "Delta:    "+(interactioncurrenttime - interactionstarttime) + " \n\n" +
-        "Phase:    "+((interactioncurrenttime - interactionstarttime)/phasedur));
 
-      if (((interactioncurrenttime - interactionstarttime)/phasedur)>1) {
-        interactionstarttime = interactioncurrenttime;
-      }
-    } else {
-      interaction_part = 2;
-      interactionstarted=false;
-    }
+      /*if (interaction_part==1) {
+       if (duration_chapter<4){
+       if (current_cycle<n_cycles){
+       if(interactionstarted==false){
+       interactionstarttime = System.currentTimeMillis();
+       interactionstarted = true;
+       }
+       */
+
+
+interactioncurrenttime = System.currentTimeMillis();
+phasetime = (int)(interactioncurrenttime - interactionstarttime);
+if (phasetime < activation_duration) {
+  phase = 0;
+} else if (phasetime >= activation_duration && phasetime < activation_duration + pomodoro_duration) {
+  phase = 1;
+} else if (phasetime >= activation_duration + pomodoro_duration && phasetime < activation_duration + pomodoro_duration + deactivation_duration) {
+  phase = 2;
+} else if (phasetime >= activation_duration + pomodoro_duration + deactivation_duration && phasetime < activation_duration + pomodoro_duration + deactivation_duration + rest_duration) {
+  phase = 3; 
+} else if (phasetime >= activation_duration + pomodoro_duration + deactivation_duration + rest_duration) {
+  phase = 4;
+}
+
+
+  OscMessage myMessage1;
+  myMessage1 = new OscMessage("/actuator/inflate");
+
+
+
+  switch (phase)
+  {
+
+    case 0: 
+        //println("Inhale"); 
+        myMessage1.add((cp5.getController("Inflation_Rate").getValue()));   
+        sendToAllActuators(myMessage1);
+        myTextarea2.setText("INHALE    "+(interactioncurrenttime-interactionstarttime)/1000);
+        //myTextarea2.setText("INHALE    "+(phasetime));
+    break;
+  case 1: 
+        //println("Hold");  
+        myMessage1.add(0.0); 
+        sendToAllActuators(myMessage1);
+        myTextarea2.setText("HOLD    "+(interactioncurrenttime-interactionstarttime-activation_duration)/1000);
+        //myTextarea2.setText("HOLD    "+(phasetime));
+    break;
+  case 2:
+
+        //println("Exhale");  
+        myMessage1.add(-(cp5.getController("Deflation_Rate").getValue())); 
+        sendToAllActuators(myMessage1);
+        myTextarea2.setText("EXHALE    "+(interactioncurrenttime-interactionstarttime-activation_duration-pomodoro_duration)/1000);
+    break;
+   case 3:
+        myMessage1.add(0.0); 
+        sendToAllActuators(myMessage1);
+        myTextarea2.setText("REST    "+(interactioncurrenttime-interactionstarttime-activation_duration-pomodoro_duration-deactivation_duration)/1000);
+    break;
+   case 4:
+
+        //println("Hold");  
+        interaction_part = 2;
+        interactionstarted=false;
+    break;
   }
+        
+       }  
 
 
+
+      // That is debugging information, please unqote, if the interaction goes somewhere....
+      /*
+  myTextarea2.setText("Start time:    "+(interactionstarttime) + " \n\n" +
+       "Current time:    "+(interactioncurrenttime)+ " \n\n" +
+       "Delta:    "+(interactioncurrenttime - interactionstarttime) + " \n\n" +
+       "Phase:    "+((interactioncurrenttime - interactionstarttime)/phasedur) +" \n\n" +
+       "Cycle:    "+(current_cycle) + " \n\n" +
+       "Duration Chapter:   " +(duration_chapter)+ " \n\n" +
+       "Duration:    " + (phasedur));
+       */
+
+
+      
   if (interaction_part==2) {
     myTextarea2.setText("And this is the end of the exercise!");
     OscMessage myMessage1;
@@ -654,13 +728,14 @@ void interaction_Two(){
 
 
 
+
 void inflating_Units() {
 
   //println("Deflation in process!");
 
   OscMessage myMessage1;
   myMessage1 = new OscMessage("/actuator/inflate");
-  myMessage1.add(100.0);
+  myMessage1.add(cp5.getController("Inflation_Rate").getValue());
   sendToAllActuators(myMessage1);
 }
 
@@ -671,7 +746,7 @@ void deflating_Units() {
 
   OscMessage myMessage1;
   myMessage1 = new OscMessage("/actuator/inflate");
-  myMessage1.add(-100.0);
+  myMessage1.add(-cp5.getController("Deflation_Rate").getValue());
   sendToAllActuators(myMessage1);
 }
 
@@ -793,6 +868,7 @@ private void addToActuatorInputs(String osckey, Object[] values) {
 }
 
 private void addToSensorInputs(String osckey, Object[] values) {
+  uiSeen.put(osckey, System.currentTimeMillis());
   if (sensorInputs.put(osckey, values) == null && fileStarted) {
     println("Received a new sensor: ENDING FILE PREMATURELY");
     EndFile(0);
@@ -908,6 +984,7 @@ void sendToOneActuator(OscMessage theOscMessage, int id) {
 }
 
 void sendToAllActuators(OscMessage theOscMessage) {
+  if (args!=null && args.length>0 && args[0].equals("--capture")) return;
 
 
   //System.out.println("## Sending to ALL actuators");

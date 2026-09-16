@@ -26,7 +26,7 @@ int inflatePower = 0;
 int solenoidPin1 = 0;
 int solenoidPin2 = 1;
 
-char ssid[] = "serv";        // your network SSID (name)
+char ssid[] = "small";        // your network SSID (name)
 char pass[] = "somaserv";    // your network password (use for WPA, or use as key for WEP)
 int status = WL_IDLE_STATUS;     // the WiFi radio's status
 

@@ -140,7 +140,7 @@ Map<String, Device> getSensors() {
 NetAddress wekinator;
 
 //data structure to hold all sensor data
-HashMap<String, Object[]> sensorInputs = new HashMap<String, Object[]>();
+Map<String, Object[]> sensorInputs = new java.util.concurrent.ConcurrentHashMap<String, Object[]>();
 
 HashMap<String, Object[]> actuatorInputs = new HashMap<String, Object[]>();
 
@@ -200,7 +200,7 @@ void setup() {
   wekinator = new NetAddress("127.0.0.1", 6448);
 
   // connectActuator("127.0.0.1");
-  size(1600, 800);
+  size(1280, 900);
   smooth();
 
   noStroke();
@@ -314,6 +314,7 @@ void setup() {
 
 
 
+  setupBreathingUI();
   selection = SelectedInteraction.Nothing;
 
   frameRate(60);
@@ -490,6 +491,8 @@ public void Stop_All_Pillows() {
 
 
 void draw() {
+  if(pressureReset.active){tickPressureReset();drawBreathingUI();return;}
+  updateBreathing();
   background(myColor);
   myColor = lerpColor(c1, c2, n);
   n += (1 - n) * 0.1;
@@ -567,92 +570,11 @@ void draw() {
   default:
     break;
   }
+  drawBreathingUI();
 }
 
 
-void interaction_Two(){
-// +++++++++++++++++++++++++++++++++++Slow HRV breathing++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  slow_breathing_duration = int(cp5.getController("Duration_of_Exercise").getValue());
-
-  if (interaction_part==0) {
-
-    if (interactionstarted==false) {
-      interactionstarttime = System.currentTimeMillis();
-      interactionstarted = true;
-    }
-
-    interactioncurrenttime = System.currentTimeMillis();
-
-    if ((interactioncurrenttime - interactionstarttime)<10000) {
-      myTextarea2.setText("In this interaction we would like you to do your everyday latop activities, while wearing the artefact");
-      OscMessage myMessage1;
-      myMessage1 = new OscMessage("/actuator/inflate");
-      myMessage1.add(0.0);
-      sendToAllActuators(myMessage1);
-    } else {
-      interaction_part = 1;
-      interactionstarted=false;
-    }
-  }
-
-  if (interaction_part==1) {
-    if (interactionstarted==false) {
-      interactionstarttime = System.currentTimeMillis();
-      longinteractionstarttime = System.currentTimeMillis();
-      interactionstarted = true;
-    }
-
-    if ((interactioncurrenttime - longinteractionstarttime)<(slow_breathing_duration*60000)) {
-      interactioncurrenttime = System.currentTimeMillis();
-      phasedur = int(cp5.getController("Inhale_or_Exhale_Duration").getValue()*1000);
-      phase = (int)((interactioncurrenttime - interactionstarttime)/phasedur);
-
-      OscMessage myMessage1;
-      myMessage1 = new OscMessage("/actuator/inflate");
-
-      switch (phase)
-      {
-
-      case 0:
-        //println("Inhale");
-        myMessage1.add(cp5.getController("Inflation_Rate").getValue());
-        sendToAllActuators(myMessage1);
-        //myTextarea2.setText("INHALE  "+(interactioncurrenttime-(phase*phasedur+interactionstarttime))/1000);
-        break;
-      case 1:
-        //println("Exhale");
-        myMessage1.add(-(cp5.getController("Deflation_Rate").getValue()));
-        sendToAllActuators(myMessage1);
-        //myTextarea2.setText("HOLD "+(interactioncurrenttime-(phase*phasedur+interactionstarttime))/1000);
-        break;
-      }
-
-      myTextarea2.setText("Long interacton start time:    "+(longinteractionstarttime) + " \n\n" +
-        "Phase start time:    "+(interactionstarttime)+ " \n\n" +
-        "Current time:    "+(interactioncurrenttime)+ " \n\n" +
-        "Delta:    "+(interactioncurrenttime - interactionstarttime) + " \n\n" +
-        "Phase:    "+((interactioncurrenttime - interactionstarttime)/phasedur));
-
-      if (((interactioncurrenttime - interactionstarttime)/phasedur)>1) {
-        interactionstarttime = interactioncurrenttime;
-      }
-    } else {
-      interaction_part = 2;
-      interactionstarted=false;
-    }
-  }
-
-
-  if (interaction_part==2) {
-    myTextarea2.setText("And this is the end of the exercise!");
-    OscMessage myMessage1;
-    myMessage1 = new OscMessage("/actuator/inflate");
-    myMessage1.add(0.0);
-    sendToAllActuators(myMessage1);
-  }
-}
-
-
+void interaction_Two() { sendBreathCommand(breath.command()); }
 
 void inflating_Units() {
 
@@ -660,7 +582,7 @@ void inflating_Units() {
 
   OscMessage myMessage1;
   myMessage1 = new OscMessage("/actuator/inflate");
-  myMessage1.add(100.0);
+  myMessage1.add((float)breath.values[3]);
   sendToAllActuators(myMessage1);
 }
 
@@ -671,7 +593,7 @@ void deflating_Units() {
 
   OscMessage myMessage1;
   myMessage1 = new OscMessage("/actuator/inflate");
-  myMessage1.add(-100.0);
+  myMessage1.add(-(float)breath.values[4]);
   sendToAllActuators(myMessage1);
 }
 
@@ -793,6 +715,7 @@ private void addToActuatorInputs(String osckey, Object[] values) {
 }
 
 private void addToSensorInputs(String osckey, Object[] values) {
+  pressureSeen.put(osckey, System.currentTimeMillis());
   if (sensorInputs.put(osckey, values) == null && fileStarted) {
     println("Received a new sensor: ENDING FILE PREMATURELY");
     EndFile(0);
@@ -908,6 +831,7 @@ void sendToOneActuator(OscMessage theOscMessage, int id) {
 }
 
 void sendToAllActuators(OscMessage theOscMessage) {
+  if (captureMode()) return;
 
 
   //System.out.println("## Sending to ALL actuators");
