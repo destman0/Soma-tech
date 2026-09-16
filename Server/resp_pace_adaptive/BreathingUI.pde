@@ -48,7 +48,7 @@ void drawBreathingUI(){
   float lift=(float)breath.lift();float eased=.5-.5*cos(PI*lift);
   float diameter=174+64*eased;
   int phaseColor=breath.running&&!breath.preparing()&&!breath.inhaling()?violet:teal;
-  noFill();stroke(#E5EFEB);strokeWeight(1);ellipse(410,363,278,278);ellipse(410,363,250,250);noStroke();
+  noStroke();
   fill(lerpColor(phaseColor,#FFFFFF,.9));ellipse(410,363,diameter+18,diameter+18);
   fill(lerpColor(phaseColor,#FFFFFF,.78));ellipse(410,363,diameter,diameter);
   String cue=pressureReset.active?"Deflating":manualIn()?"Inflating":manualOut()?"Deflating":breath.paused?"Paused":breath.preparing()?"Get ready":breath.complete?"Finished":!breath.running?"Settle in":breath.inhaling()?"Rising":"Softening";
