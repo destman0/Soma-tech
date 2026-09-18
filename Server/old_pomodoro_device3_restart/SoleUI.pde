@@ -15,8 +15,7 @@ String[] uiUnits={"min","min","sec","sec","%","%"};
 int[] uiMin={1,1,3,3,0,0}, uiMax={50,20,50,50,100,100};
 String uiNotice="Settle in. Choose your timing, then start when you are ready.";
 void setupSole(){
-  surface.setTitle("Pomodoro Timer");
-  surface.setResizable(true);
+  surface.setTitle("Sole | Inflatable footrest Pomodoro");
   textFont(createFont("Segoe UI",18));
   for(String name:uiNames) {
     Controller c=cp5.getController(name);
@@ -51,20 +50,13 @@ String uiTime(long ms){int sec=(int)Math.ceil(Math.max(0,ms)/1000.0);return nf(s
 void uiText(String s,float x,float y,float sz,int col){fill(col);textAlign(LEFT,BASELINE);textSize(sz);text(s,x,y);}
 void uiCenter(String s,float x,float y,float sz,int col){fill(col);textAlign(CENTER,BASELINE);textSize(sz);text(s,x,y);textAlign(LEFT,BASELINE);}
 void uiCard(float x,float y,float w,float h){noStroke();fill(#E6EAE3);rect(x,y+3,w,h,24);fill(#FFFFFF);rect(x,y,w,h,24);}
-// Draw on the original design canvas and map input back to it when resized.
-float uiScale(){return min(width/1280.0,height/860.0);}
-float uiOffsetX(){return (width-1280*uiScale())/2;}
-float uiOffsetY(){return (height-860*uiScale())/2;}
-float uiMouseX(){return (mouseX-uiOffsetX())/uiScale();}
-float uiMouseY(){return (mouseY-uiOffsetY())/uiScale();}
-boolean uiHit(float x,float y,float w,float h){return uiMouseX()>=x && uiMouseX()<=x+w && uiMouseY()>=y && uiMouseY()<=y+h;}
+boolean uiHit(float x,float y,float w,float h){return mouseX>=x && mouseX<=x+w && mouseY>=y && mouseY<=y+h;}
 void uiButton(String s,float x,float y,float w,int bg,int fg){
   fill(uiHit(x,y,w,46)?lerpColor(bg,uiInk,.08):bg);noStroke();rect(x,y,w,46,13);uiCenter(s,x+w/2,y+29,16,fg);
 }
 void drawSole(){
   background(#F4F3ED);noStroke();
-  pushMatrix();translate(uiOffsetX(),uiOffsetY());scale(uiScale());
-  uiText("Pomodoro Timer",36,53,34,uiInk);
+  uiText("sole",36,53,34,uiInk);uiText("A little lift for your focus.",115,51,17,uiMuted);
   fill(#E4ECE5);rect(942,25,302,38,19);uiCenter("FOOTREST  /  POMODORO",1093,50,13,uiTeal);
   uiText("Put your feet up. Time to focus.",36,109,30,uiInk);
   uiText("The pads inflate, stay raised while you focus, then deflate for your break.",36,139,17,uiMuted);
@@ -89,7 +81,7 @@ void drawSole(){
   uiButton("Inflate pads",310,521,195,manualInflate?uiTeal:#E4EFE8,manualInflate?#FFFFFF:uiTeal);
   uiButton("Deflate pads",521,521,199,manualDeflate?uiCoral:#F7E9E1,manualDeflate?#FFFFFF:#A14F3E);
   uiPad(237,626,LEFT_PAD_ID,"LEFT FOOT",#65AC9A);
-  uiPad(582,626,RIGHT_PAD_ID,"RIGHT FOOT",#65AC9A);
+  uiPad(582,626,RIGHT_PAD_ID,"RIGHT FOOT",#D89B82);
   uiText("Make it yours",834,204,23,uiInk);
   uiText(uiRunning()?"Pause or stop any time. Stop to edit timing.":"Adjust with the sliders or the + / - buttons.",834,230,13,uiMuted);
   for(int i=0;i<6;i++)uiSlider(i);
@@ -100,7 +92,6 @@ void drawSole(){
   }
   uiText(uiNotice,36,840,13,uiMuted);
   uiText("SPACE  start / pause     S  stop     R  restart",909,840,12,uiMuted);
-  popMatrix();
   if(args!=null && args.length>0 && args[0].equals("--capture") && frameCount==4){saveFrame("preview.png");exit();}
 }
 void uiPad(float x,float y,int id,String label,int col){
@@ -108,38 +99,10 @@ void uiPad(float x,float y,int id,String label,int col){
   float lift=p==1?t:p==2?1:p==3?1-t:0;
   if(uiRestartDeflating)lift=uiRestartLift*(1-t);
   // Preserve the visual position when paused; no synthetic pressure readings.
-  // A fabric cushion in side perspective: curved volume, pinched corners,
-  // a sewn edge and folds, rather than a rounded rectangular UI surface.
-  pushMatrix();translate(x,y);
-  float crown=-9-39*lift;
-  noStroke();fill(#EEF0EA);ellipse(0,40,242,17);
-  fill(lerpColor(col,uiInk,.14));
-  beginShape();vertex(-110,21);
-  bezierVertex(-90,11,-65,7,0,10);
-  bezierVertex(65,7,94,10,110,21);
-  bezierVertex(102,33,114,42,104,43);
-  bezierVertex(58,35,55,55,0,49);
-  bezierVertex(-60,53,-70,35,-105,43);
-  bezierVertex(-115,40,-101,31,-110,21);endShape(CLOSE);
-  fill(col);beginShape();vertex(-110,21);
-  bezierVertex(-94,10,-102,crown-7,-78,crown+5);
-  bezierVertex(-47,crown-8,48,crown-10,78,crown+5);
-  bezierVertex(102,crown-6,96,8,110,21);
-  bezierVertex(82,14,58,38,0,34);
-  bezierVertex(-57,39,-82,14,-110,21);endShape(CLOSE);
-  // Soft central highlight follows the expanding fabric.
-  fill(lerpColor(col,#FFFFFF,.16));beginShape();vertex(-72,crown+10);
-  bezierVertex(-27,crown-1,40,crown,70,crown+12);
-  bezierVertex(33,crown+7,-29,crown+10,-72,crown+10);endShape(CLOSE);
-  noFill();stroke(lerpColor(col,uiInk,.26));strokeWeight(1.1);
-  bezier(-106,26,-63,21,-59,43,0,39);
-  bezier(0,39,55,43,70,21,106,26);
-  // Short corner creases make the material read as cloth.
-  bezier(-104,20,-95,20,-88,22,-78,26);
-  bezier(-96,crown+6,-86,crown+11,-85,crown+18,-82,crown+22);
-  bezier(105,20,96,20,89,24,78,27);
-  bezier(93,crown+7,83,crown+13,85,crown+19,80,crown+23);
-  noStroke();popMatrix();
+  fill(#E7EBE5);ellipse(x,y+38,238,40);
+  fill(lerpColor(col,uiInk,.18));rect(x-103,y-16-lift*30,206,58+lift*30,35);
+  fill(col);rect(x-103,y-25-lift*30,206,59,32);
+  noFill();stroke(lerpColor(col,#FFFFFF,.45));strokeWeight(2);rect(x-88,y-14-lift*30,176,37,23);noStroke();
   uiCenter(label,x,y+76,12,uiMuted);
   String key=id+"/pressure";Object[] data=sensorInputs.get(key);Long seen=uiSeen.get(key);
   boolean fresh=seen!=null && System.currentTimeMillis()-seen<2000;
@@ -198,9 +161,9 @@ void mousePressed(){
   if(uiHit(492,459,228,46)){uiStop();return;}
   if(uiHit(310,521,195,46)){uiManual(true);return;}
   if(uiHit(521,521,199,46)){uiManual(false);return;}
-  for(int i=0;i<6;i++){float y=292+i*73;if(uiHit(831,y-18,375,36)){uiFocus=i;if(uiMouseX()<866)uiChange(i,uiValue(i)-1);else if(uiMouseX()>1174)uiChange(i,uiValue(i)+1);else uiChange(i,map(uiMouseX(),873,1162,uiMin[i],uiMax[i]));return;}}
+  for(int i=0;i<6;i++){float y=292+i*73;if(uiHit(831,y-18,375,36)){uiFocus=i;if(mouseX<866)uiChange(i,uiValue(i)-1);else if(mouseX>1174)uiChange(i,uiValue(i)+1);else uiChange(i,map(mouseX,873,1162,uiMin[i],uiMax[i]));return;}}
 }
-void mouseDragged(){if(uiFocus>=0 && uiHit(865,274+uiFocus*73,310,36))uiChange(uiFocus,map(uiMouseX(),873,1162,uiMin[uiFocus],uiMax[uiFocus]));}
+void mouseDragged(){if(uiFocus>=0 && uiHit(865,274+uiFocus*73,310,36))uiChange(uiFocus,map(mouseX,873,1162,uiMin[uiFocus],uiMax[uiFocus]));}
 void keyPressed(){
   if(key==ESC){key=0;uiStop();}
   else if(key==' ')uiToggle();else if(key=='s'||key=='S')uiStop();else if(key=='r'||key=='R')uiRestart();

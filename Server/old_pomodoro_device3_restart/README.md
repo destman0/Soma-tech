@@ -4,8 +4,6 @@ Open **pomodoro_device3_restart.pde** in Processing (Java mode) and Run. Keep So
 
 ## Controls
 
-The window and page title are **Pomodoro Timer**. Use the Windows maximize button or drag a window edge to resize. The whole interface scales proportionally, with centered margins when needed; mouse controls follow the scaled layout. Cushion illustrations expand during inflation, stay static during focus, and flatten during deflation. They are phase illustrations, not measured pillow volume.
-
 - Set focus/break minutes, inflation/deflation seconds, and pump strengths with sliders or +/- buttons. Tab selects a setting; arrow keys adjust it.
 - Start: 10 seconds to settle in, then inflate, focus, deflate, break. One session, matching the original sketch.
 - Pause/Resume: freezes the countdown and sends zero while paused.

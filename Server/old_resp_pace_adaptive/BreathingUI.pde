@@ -11,7 +11,7 @@ String[] units={"min","sec","sec","%","%"};
 boolean captureMode(){return args!=null && args.length>0 && args[0].equals("--capture");}
 void setupBreathingUI(){
   setupAdaptiveWindow();
-  surface.setTitle("ComfyTime");textFont(createFont("Segoe UI",18));
+  surface.setTitle("Sole | A moment to reflect");textFont(createFont("Segoe UI",18));
   cp5.setAutoDraw(false);cp5.hide();lastBreathTick=System.nanoTime();
 }
 void updateBreathing(){long now=System.nanoTime();breath.update((now-lastBreathTick)/1e9);lastBreathTick=now;}
@@ -37,7 +37,7 @@ String clockText(double seconds){int sec=(int)Math.ceil(Math.max(0,seconds));ret
 void drawBreathingUI(){
   pushMatrix(); translate(uiOffsetX(),uiOffsetY()); scale(uiScale());
   background(#F1F5F1);noStroke();
-  label("ComfyTime",36,51,34,ink);
+  label("sole",36,51,34,ink);label("Space to reflect.",115,49,17,muted);
   fill(#E1ECE7);rect(1000,24,244,36,18);centered("REFLECTIVE FOOTREST",1122,48,13,teal);
   label("A moment to settle",36,108,30,ink);
   label("A gentle rise and fall beneath your feet. Space to pause, notice and reflect.",36,139,17,muted);
@@ -80,32 +80,9 @@ void drawBreathingUI(){
   }
 }
 void drawPad(float x,float y,float lift,String title){
-  // Fabric side profile: the upper surface swells while the base stays grounded.
-  float fullness=.5-.5*cos(PI*constrain(lift,0,1));
-  float crown=y+5-27*fullness;
-  noStroke();fill(#EBEEEA);ellipse(x,y+37,205,16);
-  fill(#91B7AA);
-  beginShape();vertex(x-96,y+29);
-  bezierVertex(x-83,y+20,x-93,crown-2,x-72,crown);
-  bezierVertex(x-28,crown-14,x+31,crown-12,x+72,crown+1);
-  bezierVertex(x+91,crown-2,x+82,y+20,x+97,y+29);
-  bezierVertex(x+62,y+47,x-60,y+47,x-96,y+29);endShape(CLOSE);
-  // Softly lit fabric surface, pinched at the corners rather than a rectangular cap.
-  fill(#B9D1C4);
-  beginShape();vertex(x-96,y+29);
-  bezierVertex(x-83,y+20,x-93,crown-2,x-72,crown);
-  bezierVertex(x-28,crown-14,x+31,crown-12,x+72,crown+1);
-  bezierVertex(x+91,crown-2,x+82,y+20,x+97,y+29);
-  bezierVertex(x+42,y+20,x-43,y+22,x-96,y+29);endShape(CLOSE);
-  noFill();stroke(#749E90);strokeWeight(1.2);
-  bezier(x-94,y+29,x-40,y+42,x+43,y+42,x+95,y+29);
-  // Corner folds and a soft highlight suggest sewn fabric.
-  stroke(#9ABAAB);
-  bezier(x-85,y+24,x-72,y+20,x-75,crown+10,x-66,crown+6);
-  bezier(x+86,y+24,x+74,y+18,x+77,crown+12,x+66,crown+8);
-  stroke(#D9E7DE);strokeWeight(2);
-  bezier(x-50,crown+3,x-22,crown-5,x+20,crown-5,x+46,crown+3);
-  noStroke();
+  fill(#E5EBE7);ellipse(x,y+35,204,30);fill(#67A99A);rect(x-88,y-lift*22,176,42+lift*22,25);
+  fill(#91C5B7);rect(x-88,y-8-lift*22,176,43,25);
+  noFill();stroke(#C8E1D8);strokeWeight(1.5);rect(x-76,y-lift*22,152,26,18);noStroke();
   centered(title,x,y+61,11,muted);
   String key=PRESSURE_DEVICE_ID+"/pressure";Object[] data=sensorInputs.get(key);Long seen=pressureSeen.get(key);
   boolean fresh=seen!=null&&System.currentTimeMillis()-seen<2000;
